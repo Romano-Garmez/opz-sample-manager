@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OP-Z Sample Manager</title>
+
+</head>
+
+<body>
+    <h1>Welcome to OP-Z Sample Manager</h1>
+
+    <button id="select-drive">Select OP-Z Drive</button>
+    <div id="opz-path"></div>
+
+    <button id="list-files">List Files</button>
+    <div id="file-list">
+        <h3>Kicks</h3>
+        <div id="1-kick"></div>
+        <h3>Snares</h3>
+        <div id="2-snare"></div>
+        <h3>Percussion</h3>
+        <div id="3-perc"></div>
+        <h3>FX</h3>
+        <div id="4-fx"></div>
+        <h3>Bass</h3>
+        <div id="5-bass"></div>
+        <h3>Lead</h3>
+        <div id="6-lead"></div>
+        <h3>Arpeggio</h3>
+        <div id="7-arpeggio"></div>
+        <h3>Chords</h3>
+        <div id="8-chord"></div>
+    </div>
+
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        const fs = require('fs');
+
+        const path = require('path');
+
+    </script>
+    <script src="file-management.js"></script>
+
+</body>
+
+</html>
