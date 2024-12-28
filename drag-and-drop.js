@@ -1,7 +1,4 @@
-
-let slotname = '1-kick';
-
-const slotsContainer = document.getElementById(slotname);
+const categories = ['1-kick', '2-snare', '3-perc', '4-fx', '5-bass', '6-lead', '7-arpeggio', '8-chord'];
 const confirmButton = document.getElementById('confirm-changes');
 
 // Temporary object to hold pending changes for each category
@@ -16,61 +13,64 @@ const pendingChanges = {
     '8-chord': {}
 };
 
-// Handle drag-and-drop for slots
-slotsContainer.addEventListener('dragover', (event) => {
-    event.preventDefault();
-    if (event.target.classList.contains('sampleslot')) {
-        event.target.classList.add('dragover');
-    }
-});
+categories.forEach(category => {
+    const slotsContainer = document.getElementById(category);
 
-slotsContainer.addEventListener('dragleave', (event) => {
-    if (event.target.classList.contains('sampleslot')) {
-        event.target.classList.remove('dragover');
-    }
-});
-
-slotsContainer.addEventListener('drop', (event) => {
-    event.preventDefault();
-    const slotElement = event.target;
-
-    if (slotElement.classList.contains('sampleslot')) {
-        slotElement.classList.remove('dragover');
-
-        console.log(event.dataTransfer.files);
-
-        const droppedFile = event.dataTransfer.files[0];
-        if (droppedFile) {
-            const slotNumber = slotElement.dataset.slot;
-            const category = slotElement.closest('.samplepackbox').id;
-
-            // Create a temp directory if it doesn't exist
-            const tempDir = path.join(os.tmpdir(), 'sample-manager-temp');
-            if (!fs.existsSync(tempDir)) {
-                fs.mkdirSync(tempDir);
-            }
-
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                const arrayBuffer = event.target.result;
-                const buffer = Buffer.from(arrayBuffer);
-
-                // Copy the file to the temp directory
-                const tempFilePath = path.join(tempDir, droppedFile.name);
-                fs.writeFileSync(tempFilePath, buffer);
-
-                ipcRenderer.send('file-dropped', tempFilePath);
-
-                // Display the file name in the slot
-                slotElement.textContent = droppedFile.name;
-
-                // Save the change to the correct category in pendingChanges
-                pendingChanges[category][slotNumber] = tempFilePath;
-                console.log(`Slot ${slotNumber} in category ${category} updated with ${tempFilePath}`);
-            };
-            reader.readAsArrayBuffer(droppedFile);
+    // Handle drag-and-drop for slots
+    slotsContainer.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        if (event.target.classList.contains('sampleslot')) {
+            event.target.classList.add('dragover');
         }
-    }
+    });
+
+    slotsContainer.addEventListener('dragleave', (event) => {
+        if (event.target.classList.contains('sampleslot')) {
+            event.target.classList.remove('dragover');
+        }
+    });
+
+    slotsContainer.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const slotElement = event.target;
+
+        if (slotElement.classList.contains('sampleslot')) {
+            slotElement.classList.remove('dragover');
+
+            console.log(event.dataTransfer.files);
+
+            const droppedFile = event.dataTransfer.files[0];
+            if (droppedFile) {
+                const slotNumber = slotElement.dataset.slot;
+
+                // Create a temp directory if it doesn't exist
+                const tempDir = path.join(os.tmpdir(), 'sample-manager-temp');
+                if (!fs.existsSync(tempDir)) {
+                    fs.mkdirSync(tempDir);
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const arrayBuffer = event.target.result;
+                    const buffer = Buffer.from(arrayBuffer);
+
+                    // Copy the file to the temp directory
+                    const tempFilePath = path.join(tempDir, droppedFile.name);
+                    fs.writeFileSync(tempFilePath, buffer);
+
+                    ipcRenderer.send('file-dropped', tempFilePath);
+
+                    // Display the file name in the slot
+                    slotElement.textContent = droppedFile.name;
+
+                    // Save the change to the correct category in pendingChanges
+                    pendingChanges[category][slotNumber] = tempFilePath;
+                    console.log(`Slot ${slotNumber} in category ${category} updated with ${tempFilePath}`);
+                };
+                reader.readAsArrayBuffer(droppedFile);
+            }
+        }
+    });
 });
 
 // Handle confirm button click/sync files to op-z
