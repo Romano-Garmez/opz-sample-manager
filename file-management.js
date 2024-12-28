@@ -18,9 +18,16 @@ selectDriveBtn.addEventListener('click', async () => {
         document.getElementById('opz-path').innerText = opzpath;
         printFiles(opzpath);
     }
+
+    listFiles();
 });
 
 listFilesBtn.addEventListener('click', async () => {
+    listFiles();
+
+});
+
+function listFiles(){
     // Open the dialog to select a directory
     const samplepackdirectory = path.join(opzpath, 'samplepacks');
     const samplepackfolders = getFilesInDir(samplepackdirectory);
@@ -61,8 +68,7 @@ listFilesBtn.addEventListener('click', async () => {
             console.error("Element not found for sampletype:", samplepackfolders[sampletype]);
         }
     }
-
-});
+}
 
 function printFiles(directory) {
     const fs = require('fs');

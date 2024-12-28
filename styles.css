@@ -12,6 +12,10 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.sampleslot.filled {
+    background-color: #63cc73;
+}
+
 .sampleslot.dragover {
     border-color: #000;
     background-color: #eef;

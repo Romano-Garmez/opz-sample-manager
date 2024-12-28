@@ -62,6 +62,7 @@ categories.forEach(category => {
 
                     // Display the file name in the slot
                     slotElement.textContent = droppedFile.name;
+                    slotElement.classList.add('filled');
 
                     // Save the change to the correct category in pendingChanges
                     pendingChanges[category][slotNumber] = tempFilePath;
@@ -80,12 +81,12 @@ confirmButton.addEventListener('click', () => {
             console.log(`Applying changes for slot ${slot} in category ${category}`);
             const formattedSlot = String(slot).padStart(2, '0'); // Pads single digits with a leading zero
             const destinationFolder = path.join(opzpath, 'samplepacks', category, `${formattedSlot}`); // Adjust for actual path
-            const currentFile = fs.readdirSync(destinationFolder)[0]; // Assuming one file per slot
 
-            // Remove the existing file
-            if (currentFile) {
-                fs.unlinkSync(path.join(destinationFolder, currentFile));
-            }
+            // Remove all existing files in the slot directory
+            const existingFiles = fs.readdirSync(destinationFolder);
+            existingFiles.forEach(file => {
+                fs.unlinkSync(path.join(destinationFolder, file));
+            });
 
             // Copy the new file to the slot
             fs.copyFileSync(newFilePath, path.join(destinationFolder, path.basename(newFilePath)));
@@ -100,4 +101,6 @@ confirmButton.addEventListener('click', () => {
     }
 
     alert('Changes confirmed and saved!');
+
+    listFiles();
 });
