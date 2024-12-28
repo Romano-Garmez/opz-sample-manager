@@ -34,12 +34,31 @@ slotsContainer.addEventListener('drop', (event) => {
         if (droppedFile) {
             const slotNumber = slotElement.dataset.slot;
 
-            // Display the file name in the slot
-            slotElement.textContent = droppedFile.name;
+            // Create a temp directory if it doesn't exist
+            const tempDir = path.join(os.tmpdir(), 'sample-manager-temp');
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir);
+            }
 
-            // Save the change to pendingChanges
-            pendingChanges[slotNumber] = droppedFile.path;
-            console.log(`Slot ${slotNumber} updated with ${droppedFile.path}`);
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const arrayBuffer = event.target.result;
+                const buffer = Buffer.from(arrayBuffer);
+
+                // Copy the file to the temp directory
+                const tempFilePath = path.join(tempDir, droppedFile.name);
+                fs.writeFileSync(tempFilePath, buffer);
+
+                ipcRenderer.send('file-dropped', tempFilePath);
+
+                // Display the file name in the slot
+                slotElement.textContent = droppedFile.name;
+
+                // Save the change to pendingChanges
+                pendingChanges[slotNumber] = tempFilePath;
+                console.log(`Slot ${slotNumber} updated with ${tempFilePath}`);
+            };
+            reader.readAsArrayBuffer(droppedFile);
         }
     }
 });

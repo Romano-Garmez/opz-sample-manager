@@ -95,7 +95,8 @@ function listSamples(dirPath) {
             });
         } else if (stats.isFile() && (file.endsWith('.aif') || file.endsWith('.aiff'))) {
             // Get slot #
-            let slot = parseInt(fullPath.split('\\')[fullPath.split('\\').length - 2], 10);
+            console.log("fullPath: " + fullPath);
+            let slot = parseInt(path.basename(path.dirname(fullPath)), 10);
             console.log("file: " + file + " slot: " + slot);
 
             // If it's a file and ends with .aif, add it to the sample list
