@@ -31,6 +31,11 @@ listFilesBtn.addEventListener('click', async () => {
         let samplepackdiv = document.getElementById(samplepackfolders[sampletype]);
 
         if (samplepackdiv) {
+            //clear any sub elements
+            while (samplepackdiv.firstChild) {
+                samplepackdiv.removeChild(samplepackdiv.firstChild);
+            }
+
             // If the element is found, update its innerHTML
 
             let samplelist = listSamples(path.join(opzpath, 'samplepacks', samplepackfolders[sampletype]));
