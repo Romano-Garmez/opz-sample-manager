@@ -4,8 +4,17 @@ let slotname = '1-kick';
 const slotsContainer = document.getElementById(slotname);
 const confirmButton = document.getElementById('confirm-changes');
 
-// Temporary object to hold pending changes
-const pendingChanges = {};
+// Temporary object to hold pending changes for each category
+const pendingChanges = {
+    '1-kick': {},
+    '2-snare': {},
+    '3-perc': {},
+    '4-fx': {},
+    '5-bass': {},
+    '6-lead': {},
+    '7-arpeggio': {},
+    '8-chord': {}
+};
 
 // Handle drag-and-drop for slots
 slotsContainer.addEventListener('dragover', (event) => {
@@ -33,6 +42,7 @@ slotsContainer.addEventListener('drop', (event) => {
         const droppedFile = event.dataTransfer.files[0];
         if (droppedFile) {
             const slotNumber = slotElement.dataset.slot;
+            const category = slotElement.closest('.samplepackbox').id;
 
             // Create a temp directory if it doesn't exist
             const tempDir = path.join(os.tmpdir(), 'sample-manager-temp');
@@ -54,36 +64,40 @@ slotsContainer.addEventListener('drop', (event) => {
                 // Display the file name in the slot
                 slotElement.textContent = droppedFile.name;
 
-                // Save the change to pendingChanges
-                pendingChanges[slotNumber] = tempFilePath;
-                console.log(`Slot ${slotNumber} updated with ${tempFilePath}`);
+                // Save the change to the correct category in pendingChanges
+                pendingChanges[category][slotNumber] = tempFilePath;
+                console.log(`Slot ${slotNumber} in category ${category} updated with ${tempFilePath}`);
             };
             reader.readAsArrayBuffer(droppedFile);
         }
     }
 });
 
-// Handle confirm button click
+// Handle confirm button click/sync files to op-z
 confirmButton.addEventListener('click', () => {
-    for (const [slot, newFilePath] of Object.entries(pendingChanges)) {
-        console.log(`Applying changes for slot ${slot} `);
-        const formattedSlot = String(slot).padStart(2, '0'); // Pads single digits with a leading zero
-        const destinationFolder = path.join(opzpath, 'samplepacks', slotname, `${formattedSlot}`); // Adjust for actual path
-        const currentFile = fs.readdirSync(destinationFolder)[0]; // Assuming one file per slot
+    for (const [category, changes] of Object.entries(pendingChanges)) {
+        for (const [slot, newFilePath] of Object.entries(changes)) {
+            console.log(`Applying changes for slot ${slot} in category ${category}`);
+            const formattedSlot = String(slot).padStart(2, '0'); // Pads single digits with a leading zero
+            const destinationFolder = path.join(opzpath, 'samplepacks', category, `${formattedSlot}`); // Adjust for actual path
+            const currentFile = fs.readdirSync(destinationFolder)[0]; // Assuming one file per slot
 
-        // Remove the existing file
-        if (currentFile) {
-            fs.unlinkSync(path.join(destinationFolder, currentFile));
+            // Remove the existing file
+            if (currentFile) {
+                fs.unlinkSync(path.join(destinationFolder, currentFile));
+            }
+
+            // Copy the new file to the slot
+            fs.copyFileSync(newFilePath, path.join(destinationFolder, path.basename(newFilePath)));
+
+            console.log(`Slot ${slot} in category ${category} updated with ${newFilePath}`);
         }
-
-        // Copy the new file to the slot
-        fs.copyFileSync(newFilePath, path.join(destinationFolder, path.basename(newFilePath)));
-
-        console.log(`Slot ${slot} updated with ${newFilePath}`);
     }
 
     // Clear pendingChanges after applying
-    Object.keys(pendingChanges).forEach((key) => delete pendingChanges[key]);
+    for (const category in pendingChanges) {
+        pendingChanges[category] = {};
+    }
 
     alert('Changes confirmed and saved!');
 });
