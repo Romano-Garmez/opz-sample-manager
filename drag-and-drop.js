@@ -18,7 +18,7 @@ let tempDir = "";
 categories.forEach(category => {
     const slotsContainer = document.getElementById(category);
 
-    
+
 
     // Handle drag-and-drop for slots
     slotsContainer.addEventListener('dragover', (event) => {
@@ -109,9 +109,16 @@ confirmButton.addEventListener('click', () => {
     }
 
     //remove temp directory
-    fs.rmdirSync(tempDir, { recursive: true });
+    if (fs.existsSync(tempDir)) {
+        fs.rmdirSync(tempDir, { recursive: true });
+    }
 
     alert('Changes confirmed and saved!');
 
     listFiles();
 });
+
+function addToPendingChanges(category, slot, filePath) {
+    console.log(`Adding ${filePath} to pending changes for slot ${slot} in category ${categories[category]}`);
+    pendingChanges[categories[category]][slot] = filePath;
+}

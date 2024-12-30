@@ -27,7 +27,7 @@ listFilesBtn.addEventListener('click', async () => {
 
 });
 
-function listFiles(){
+function listFiles() {
     // Open the dialog to select a directory
     const samplepackdirectory = path.join(opzpath, 'samplepacks');
     const samplepackfolders = getFilesInDir(samplepackdirectory);
@@ -58,6 +58,23 @@ function listFiles(){
 
                 if (samplelist[i] != undefined) {
                     newdiv.innerHTML = samplelist[i];
+
+                    // Add delete button to each slot
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.classList.add('delete-button');
+                    newdiv.appendChild(deleteButton);
+
+                    deleteButton.addEventListener('click', () => {
+                        const slotNumber = i;
+                        addToPendingChanges(sampletype - 1, slotNumber, 'xxx');
+                        newdiv.classList.add('filled');
+                        newdiv.textContent = '';
+                        newdiv.appendChild(deleteButton);
+                        console.log(`Delete button clicked for slot ${slotNumber} in category ${sampletype}`);
+                    });
+
+
                 }
                 else {
                     newdiv.innerHTML = "empty";
@@ -91,7 +108,7 @@ function getFilesInDir(directory) {
 function listSamples(dirPath) {
     const files = fs.readdirSync(dirPath);  // Get all files and folders in the current directory
     const sampleArray = new Array(numslots + 1).fill("");
-    
+
     files.forEach(file => {
         const fullPath = path.join(dirPath, file);  // Get the full path of the current file/folder
         const stats = fs.statSync(fullPath);  // Get stats to determine if it's a file or folder
