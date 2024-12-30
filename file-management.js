@@ -31,10 +31,10 @@ function listFiles(){
     // Open the dialog to select a directory
     const samplepackdirectory = path.join(opzpath, 'samplepacks');
     const samplepackfolders = getFilesInDir(samplepackdirectory);
-    console.log("samplepackfolders: " + samplepackfolders);
+    //console.log("samplepackfolders: " + samplepackfolders);
 
     for (let sampletype in samplepackfolders) {
-        console.log("current sample type: " + samplepackfolders[sampletype]);
+        //console.log("current sample type: " + samplepackfolders[sampletype]);
         let samplepackdiv = document.getElementById(samplepackfolders[sampletype]);
 
         if (samplepackdiv) {
@@ -46,7 +46,7 @@ function listFiles(){
             // If the element is found, update its innerHTML
 
             let samplelist = listSamples(path.join(opzpath, 'samplepacks', samplepackfolders[sampletype]));
-            console.log("samplelist: " + samplelist);
+            //console.log("samplelist: " + samplelist);
 
             for (let i = 1; i <= numslots; i += 1) {
                 let newdiv = document.createElement('div');
@@ -106,9 +106,9 @@ function listSamples(dirPath) {
             });
         } else if (stats.isFile() && (file.endsWith('.aif') || file.endsWith('.aiff'))) {
             // Get slot #
-            console.log("fullPath: " + fullPath);
+            //console.log("fullPath: " + fullPath);
             let slot = parseInt(path.basename(path.dirname(fullPath)), 10);
-            console.log("file: " + file + " slot: " + slot);
+            //console.log("file: " + file + " slot: " + slot);
 
             // If it's a file and ends with .aif, add it to the sample list
             if (slot >= 0 && slot < numslots + 1) {
@@ -117,7 +117,7 @@ function listSamples(dirPath) {
         }
     });
 
-    console.log("sampleArray: ", sampleArray);  // Log the sampleArray to debug
+    //console.log("sampleArray: ", sampleArray);  // Log the sampleArray to debug
 
     return sampleArray;
 }

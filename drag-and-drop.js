@@ -13,8 +13,12 @@ const pendingChanges = {
     '8-chord': {}
 };
 
+let tempDir = "";
+
 categories.forEach(category => {
     const slotsContainer = document.getElementById(category);
+
+    
 
     // Handle drag-and-drop for slots
     slotsContainer.addEventListener('dragover', (event) => {
@@ -44,7 +48,7 @@ categories.forEach(category => {
                 const slotNumber = slotElement.dataset.slot;
 
                 // Create a temp directory if it doesn't exist
-                const tempDir = path.join(os.tmpdir(), 'sample-manager-temp');
+                tempDir = path.join(os.tmpdir(), 'sample-manager-temp');
                 if (!fs.existsSync(tempDir)) {
                     fs.mkdirSync(tempDir);
                 }
@@ -88,8 +92,12 @@ confirmButton.addEventListener('click', () => {
                 fs.unlinkSync(path.join(destinationFolder, file));
             });
 
-            // Copy the new file to the slot
-            fs.copyFileSync(newFilePath, path.join(destinationFolder, path.basename(newFilePath)));
+            // If the entry is 'xxx', skip copying the new file
+            if (newFilePath !== 'xxx') {
+                // Copy the new file to the slot
+                fs.copyFileSync(newFilePath, path.join(destinationFolder, path.basename(newFilePath)));
+                console.log(`Slot ${slot} in category ${category} updated with ${newFilePath}`);
+            }
 
             console.log(`Slot ${slot} in category ${category} updated with ${newFilePath}`);
         }
@@ -99,6 +107,9 @@ confirmButton.addEventListener('click', () => {
     for (const category in pendingChanges) {
         pendingChanges[category] = {};
     }
+
+    //remove temp directory
+    fs.rmdirSync(tempDir, { recursive: true });
 
     alert('Changes confirmed and saved!');
 
