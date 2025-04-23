@@ -1,8 +1,9 @@
 // main.js
-const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+
 const { exec } = require('child_process');
 
 // Keep a global reference of the window object to prevent garbage collection
@@ -19,7 +20,8 @@ function createWindow() {
     });
 
     // Load the index.html file
-    mainWindow.loadFile('index.html');
+    mainWindow.loadFile('sampleloader.html');
+    
 
     // Open DevTools (for development)
     mainWindow.webContents.openDevTools();
