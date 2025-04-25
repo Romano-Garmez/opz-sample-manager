@@ -16,9 +16,9 @@
     background-color: #63cc73;
 }
 
-.sampleslot.dragover {
-    border-color: #000;
-    background-color: #eef;
+.sampleslot.drag-hover {
+    background-color: #d0ebff;
+    border: 2px dashed #339af0;
 }
 
 .delete-button {
