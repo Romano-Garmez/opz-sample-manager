@@ -18,7 +18,7 @@ SAMPLE_CATEGORIES = [
     "8-chord"
 ]
 
-opz_sample_dir = ""
+OPZ_MOUNT_PATH = ""
 
 sample_data = [
     [
@@ -33,7 +33,7 @@ def index():
 
 @app.route("/save-opz-dir", methods=["POST"])
 def process_directory():
-    global opz_sample_dir
+    global OPZ_MOUNT_PATH
 
     data = request.get_json()
     directory = data.get("directory")
@@ -44,19 +44,19 @@ def process_directory():
     # Example: List files in the directory
     files = os.listdir(directory)
     print(f"Files in directory {directory}: {files}")
-    opz_sample_dir = directory
+    OPZ_MOUNT_PATH = directory
     return jsonify({"success": True, "files": files})
 
 @app.route("/read-samples")
 def read_opz():
     sample_data = []
-    print(f"Reading samples from: {opz_sample_dir}")
+    print(f"Reading samples from: {OPZ_MOUNT_PATH}")
 
     for category in SAMPLE_CATEGORIES:
         category_data = []
         for slot in range(NUMBER_OF_SAMPLES_PER_SLOT):
             slot_name = f"{slot + 1:02d}"  # "01", "02", ..., "10"
-            slot_path = os.path.join(opz_sample_dir, "samplepacks", category, slot_name)
+            slot_path = os.path.join(OPZ_MOUNT_PATH, "samplepacks", category, slot_name)
 
             sample_info = {
                 "path": None
@@ -73,15 +73,29 @@ def read_opz():
             category_data.append(sample_info)
         sample_data.append(category_data)
 
-    print (jsonify({
-        "sampleData": sample_data,
-        "categories": SAMPLE_CATEGORIES
-    }))
     return jsonify({
         "sampleData": sample_data,
         "categories": SAMPLE_CATEGORIES
     })
 
+@app.route("/delete-sample", methods=["DELETE"])
+def delete_sample():
+    data = request.get_json()
+    sample_path = data.get("path")
+
+    if not sample_path or not os.path.isfile(sample_path):
+        return {"error": "Invalid path"}, 400
+    
+    # prevent deleting files outside the samplepacks directory, probably not needed but just in case
+    if not sample_path.startswith(os.path.join(OPZ_MOUNT_PATH, "samplepacks")):
+        return {"error": "Unauthorized path"}, 403
+
+    try:
+        os.remove(sample_path)
+        return {"status": "deleted"}, 200
+    except Exception as e:
+        print(f"Error deleting file: {e}")
+        return {"error": "Failed to delete file"}, 500
 
 if __name__ == "__main__":
     app.run(debug=True)

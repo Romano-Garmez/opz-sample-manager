@@ -10,8 +10,6 @@
 <button onclick="fetchOpzSamples()" id="list-files">List Files</button>
 <div id="sample-output"></div>
 
-<button id="confirm-changes">Confirm Changes</button>
-
 <div id="file-list">
     <h3>Kicks</h3>
     <div class="samplepackbox" id="1-kick"></div>
@@ -39,21 +37,65 @@
                 throw new Error("Network response was not ok: " + response.statusText);
             }
             const data = await response.json();
-    
-            console.log("Sample Categories:", data.categories);
-            console.log("First kick slot path:", data.sampleData[0][0].path);
-    
-            // Example: update your HTML here
-            const container = document.getElementById("sample-output");
-            container.innerHTML = data.categories.map((cat, i) => {
-                return `<div><strong>${cat}</strong>: ${data.sampleData[i].map(slot => slot.path || "(empty)").join(", ")}</div>`;
-            }).join("<br>");
-            
+
+            // Clear existing slots
+            data.categories.forEach((category, catIndex) => {
+                const container = document.getElementById(category);
+                container.innerHTML = ""; // clear previous content
+
+                data.sampleData[catIndex].forEach((slot, slotIndex) => {
+                    const slotDiv = document.createElement("div");
+                    slotDiv.classList.add("sampleslot");
+                    slotDiv.setAttribute("draggable", "true");
+                    slotDiv.dataset.category = category;
+                    slotDiv.dataset.slot = slotIndex;
+
+                    const pathText = slot.path ? slot.path : "(empty)";
+                    const text = document.createElement("span");
+                    text.textContent = `Slot ${slotIndex + 1}: ${pathText}`;
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.textContent = "✕";
+                    deleteBtn.classList.add("delete-btn");
+                    deleteBtn.onclick = async () => {
+                        const samplePath = slot.path;
+                        if (!samplePath) return; // nothing to delete
+
+                        const confirmed = confirm(`Delete sample?\n${samplePath}`);
+                        if (!confirmed) return;
+
+                        try {
+                            const res = await fetch("http://localhost:5000/delete-sample", {
+                                method: "DELETE",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ path: samplePath })
+                            });
+
+                            if (!res.ok) throw new Error("Delete failed");
+
+                            // Update UI to show it's empty now
+                            slot.path = null;
+                            text.textContent = `Slot ${slotIndex + 1}: (empty)`;
+                        } catch (err) {
+                            console.error("Failed to delete sample:", err);
+                            alert("Could not delete sample.");
+                        }
+                    };
+
+                    slotDiv.appendChild(text);
+                    slotDiv.appendChild(deleteBtn);
+                    container.appendChild(slotDiv);
+                });
+            });
+
         } catch (error) {
             console.error("Failed to fetch OP-Z samples:", error);
         }
     }
-    </script>
+
+</script>
 
 
 {% endblock %}
