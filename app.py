@@ -70,6 +70,10 @@ def read_opz():
                 ]
                 if files:
                     sample_info["path"] = os.path.join(slot_path, files[0])
+                    sample_info["filename"] = files[0]
+                    sample_info["filesize"] = os.path.getsize(
+                        os.path.join(slot_path, files[0])
+                    )
 
             category_data.append(sample_info)
         sample_data.append(category_data)
@@ -104,7 +108,13 @@ def upload_sample():
                 os.remove(existing_path)
 
         file.save(save_path)
-        return {"status": "uploaded", "path": save_path}, 200
+        return {
+            "status": "uploaded",
+            "path": save_path,
+            "filename": filename,
+            "filesize": os.path.getsize(save_path),
+        }, 200
+
     except Exception as e:
         print("Upload error:", e)
         return {"error": "File save failed"}, 500
@@ -144,14 +154,17 @@ def move_sample():
 
     # Resolve destination path
     filename = os.path.basename(source_path)
-    target_dir = os.path.join(OPZ_MOUNT_PATH, "samplepacks", target_category, f"{int(target_slot)+1:02d}")
+    target_dir = os.path.join(
+        OPZ_MOUNT_PATH, "samplepacks", target_category, f"{int(target_slot)+1:02d}"
+    )
     os.makedirs(target_dir, exist_ok=True)
     target_path = os.path.join(target_dir, filename)
 
     try:
         # Check if there's an existing file in the target slot
         existing_files = [
-            f for f in os.listdir(target_dir)
+            f
+            for f in os.listdir(target_dir)
             if os.path.isfile(os.path.join(target_dir, f))
         ]
 
@@ -163,7 +176,9 @@ def move_sample():
             if os.path.abspath(source_path) != os.path.abspath(existing_target):
                 # Move target sample to source's original folder
                 source_dir = os.path.dirname(source_path)
-                swapped_target = os.path.join(source_dir, os.path.basename(existing_target))
+                swapped_target = os.path.join(
+                    source_dir, os.path.basename(existing_target)
+                )
                 os.rename(existing_target, swapped_target)
 
         # Move new file into target slot (overwriting any remaining copy of itself)
@@ -174,7 +189,6 @@ def move_sample():
     except Exception as e:
         print("Move error:", e)
         return {"error": "Move failed"}, 500
-
 
 
 if __name__ == "__main__":
