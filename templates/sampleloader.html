@@ -7,10 +7,8 @@
 {% block main %}
 <h1>Welcome to OP-Z Sample Manager</h1>
 
-<button id="select-drive">Select OP-Z Drive</button>
-<div id="opz-path"></div>
-
-<button id="list-files">List Files</button>
+<button onclick="fetchOpzSamples()" id="list-files">List Files</button>
+<div id="sample-output"></div>
 
 <button id="confirm-changes">Confirm Changes</button>
 
@@ -33,12 +31,30 @@
     <div class="samplepackbox" id="8-chord"></div>
 </div>
 
-<!-- convert this to python calls
-<script src="/static/js/file-management.js"></script>
+<script>
+    async function fetchOpzSamples() {
+        try {
+            const response = await fetch("http://localhost:5000/read-samples");
+            if (!response.ok) {
+                throw new Error("Network response was not ok: " + response.statusText);
+            }
+            const data = await response.json();
+    
+            console.log("Sample Categories:", data.categories);
+            console.log("First kick slot path:", data.sampleData[0][0].path);
+    
+            // Example: update your HTML here
+            const container = document.getElementById("sample-output");
+            container.innerHTML = data.categories.map((cat, i) => {
+                return `<div><strong>${cat}</strong>: ${data.sampleData[i].map(slot => slot.path || "(empty)").join(", ")}</div>`;
+            }).join("<br>");
+            
+        } catch (error) {
+            console.error("Failed to fetch OP-Z samples:", error);
+        }
+    }
+    </script>
 
--->
-
-<script src="/static/js/drag-and-drop.js"></script>
 
 {% endblock %}
 
