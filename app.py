@@ -29,7 +29,15 @@ sample_data = [
 
 @app.route("/")
 def index():
-    return render_template("sampleloader.html")
+    return render_template("index.html")
+
+@app.route("/sampleconverter")
+def sampleconverter():
+    return render_template("sampleconverter.html")
+
+@app.route("/samplemanager")
+def samplemanager():
+    return render_template("samplemanager.html")
 
 
 @app.route("/save-opz-dir", methods=["POST"])
