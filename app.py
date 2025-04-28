@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import os
 import werkzeug.utils
+import subprocess
+import uuid
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -26,14 +28,21 @@ sample_data = [
     for _ in range(NUMBER_OF_SAMPLE_TYPES)
 ]
 
+UPLOAD_FOLDER = "uploads"
+CONVERTED_FOLDER = "converted"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(CONVERTED_FOLDER, exist_ok=True)
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
+
 @app.route("/sampleconverter")
 def sampleconverter():
     return render_template("sampleconverter.html")
+
 
 @app.route("/samplemanager")
 def samplemanager():
@@ -197,6 +206,55 @@ def move_sample():
     except Exception as e:
         print("Move error:", e)
         return {"error": "Move failed"}, 500
+
+
+@app.route("/convert", methods=["POST"])
+def convert_sample():
+    file = request.files["file"]
+    sample_type = request.form["type"]  # "drum" or "synth"
+
+    if file.filename == "":
+        return jsonify({"error": "No file uploaded"}), 400
+
+    # Save uploaded file temporarily
+    input_path = os.path.join(UPLOAD_FOLDER, str(uuid.uuid4()) + "_" + file.filename)
+    file.save(input_path)
+
+    # Set output filename
+    output_filename = os.path.splitext(os.path.basename(file.filename))[0] + ".aiff"
+    output_path = os.path.join(CONVERTED_FOLDER, output_filename)
+
+    # Determine max length
+    max_duration = 12 if sample_type == "drum" else 6
+
+    # ffmpeg command
+    ffmpeg_cmd = [
+        "ffmpeg",
+        "-i",
+        input_path,
+        "-af",
+        "loudnorm",  # normalize audio
+        "-t",
+        str(max_duration),  # trim to correct duration
+        "-ac",
+        "1",  # force mono
+        "-ar",
+        "44100",  # sample rate 44.1k
+        "-sample_fmt",
+        "s16",  # 16-bit samples
+        output_path,
+    ]
+
+    try:
+        subprocess.run(ffmpeg_cmd, check=True)
+    except subprocess.CalledProcessError:
+        return jsonify({"error": "Conversion failed"}), 500
+    finally:
+        # Clean up input file
+        if os.path.exists(input_path):
+            os.remove(input_path)
+
+    return jsonify({"message": f"Converted to {output_filename} successfully."})
 
 
 if __name__ == "__main__":
