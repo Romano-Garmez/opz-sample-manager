@@ -32,7 +32,12 @@
 </div>
 
 <script src="/static/js/samplemanager.js"></script>
-
+<script>
+    // on page load, list the samples
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchOpzSamples();
+    });
+</script>
 
 {% endblock %}
 

@@ -21,7 +21,7 @@ SAMPLE_CATEGORIES = [
     "8-chord",
 ]
 
-OPZ_MOUNT_PATH = ""
+OPZ_MOUNT_PATH = None  # Global variable to store the OP-Z mount path
 
 sample_data = [
     [{"path": None} for _ in range(NUMBER_OF_SAMPLES_PER_SLOT)]
@@ -260,6 +260,9 @@ def convert_sample():
 
     return jsonify({"message": f"Converted to {output_filename} successfully."})
 
+@app.route('/get-opz-mount-path', methods=['GET'])
+def get_opz_mount_path():
+    return jsonify(OPZ_MOUNT_PATH=OPZ_MOUNT_PATH)
 
 if __name__ == "__main__":
     app.run(debug=True)

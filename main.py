@@ -25,12 +25,18 @@ def start_flask():
 
 
 from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QFileDialog
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QLabel,
+    QFileDialog,
 )
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 import requests
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -48,7 +54,18 @@ class MainWindow(QMainWindow):
         self.select_dir_button.setMaximumWidth(150)
         self.select_dir_button.clicked.connect(self.select_directory)
 
-        self.selected_dir_label = QLabel("No directory selected")
+        # read the current OP-Z mount path from the Flask backend if already set
+        response = requests.get("http://127.0.0.1:5000/get-opz-mount-path")
+        data = response.json()
+        print("Current OP-Z Mount Path:", data["OPZ_MOUNT_PATH"])
+        if data["OPZ_MOUNT_PATH"]:
+            self.selected_dir_label = QLabel(
+                f"Selected Directory: {data['OPZ_MOUNT_PATH']}"
+            )
+        else:
+            # If no directory is set, show a default message
+            self.selected_dir_label = QLabel("No directory selected")
+
         self.selected_dir_label.setStyleSheet("font-size: 10pt;")
         self.selected_dir_label.setMaximumHeight(30)
 
@@ -62,7 +79,7 @@ class MainWindow(QMainWindow):
         # Combine browser + bottom row
         layout = QVBoxLayout()
         layout.addWidget(self.browser, stretch=1)  # 90% of vertical space
-        layout.addWidget(bottom_widget, stretch=0) # minimal vertical space
+        layout.addWidget(bottom_widget, stretch=0)  # minimal vertical space
 
         container = QWidget()
         container.setLayout(layout)
@@ -86,7 +103,6 @@ class MainWindow(QMainWindow):
                     print("Failed to send directory to Flask backend")
             except requests.exceptions.RequestException as e:
                 print(f"Error sending directory to Flask backend: {e}")
-
 
 
 if __name__ == "__main__":
