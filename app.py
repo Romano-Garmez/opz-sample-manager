@@ -30,8 +30,12 @@ sample_data = [
 
 UPLOAD_FOLDER = "uploads"
 CONVERTED_FOLDER = "converted"
+SYN_CONVERTED_FOLDER = "converted/synth"
+DRUM_CONVERTED_FOLDER = "converted/drum"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CONVERTED_FOLDER, exist_ok=True)
+os.makedirs(SYN_CONVERTED_FOLDER, exist_ok=True)
+os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
 
 @app.route("/")
@@ -222,7 +226,7 @@ def convert_sample():
 
     # Set output filename
     output_filename = os.path.splitext(os.path.basename(file.filename))[0] + ".aiff"
-    output_path = os.path.join(CONVERTED_FOLDER, output_filename)
+    output_path = os.path.join(CONVERTED_FOLDER, sample_type, output_filename)
 
     # Determine max length
     max_duration = 12 if sample_type == "drum" else 6
