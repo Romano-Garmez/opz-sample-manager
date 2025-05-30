@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+import html
 from flask_cors import CORS
 import os
 import werkzeug.utils
@@ -131,8 +132,8 @@ def upload_sample():
         file.save(save_path)
         return {
             "status": "uploaded",
-            "path": save_path,
-            "filename": filename,
+            "path": html.escape(save_path),
+            "filename": html.escape(filename),
             "filesize": os.path.getsize(save_path),
         }, 200
 
