@@ -206,7 +206,8 @@ def move_sample():
         # Move new file into target slot (overwriting any remaining copy of itself)
         os.rename(source_path, target_path)
 
-        return {"status": "moved", "path": target_path}, 200
+        from html import escape
+        return {"status": "moved", "path": escape(target_path)}, 200
 
     except Exception as e:
         print("Move error:", e)
