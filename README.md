@@ -27,3 +27,6 @@ Very early in development! Has bugs, UI is unintuitive. Everything is subject to
 
 ### Sample Converter:
 ![sample converter](/screenshots/sampleconverter.png)
+
+### Config File Editor:
+![config file editor](/screenshots/configeditor.png)
