@@ -44,7 +44,8 @@ os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
 # config
 config = load_config()
-OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH", "")  # Global variable to store the OP-Z mount path
+OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH", "")   # Global variable to store the OP-Z mount path
+FFMPEG_PATH = config.get("FFMPEG_PATH", "")         # Global variable to store the path to ffmpeg.exe for windows users.
 
 @app.route("/")
 def index():
