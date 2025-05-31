@@ -8,3 +8,19 @@ async function openFilePicker() {
       document.getElementById("result").textContent = "Cancelled";
     }
   }
+
+  function resetConfig() {  
+  fetch('/reset-config', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Optionally show a message or reload the page
+        alert('Config reset! Please restart the app.');
+        window.location.reload();
+    })
+    .catch(error => {
+        alert('Error resetting config.');
+        console.error(error);
+    });
+}

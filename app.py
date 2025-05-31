@@ -7,7 +7,7 @@ import os
 import werkzeug.utils
 import subprocess
 import uuid
-from config import load_config, save_config
+from config import load_config, save_config, reset_config
 from PyQt5.QtWidgets import QFileDialog, QApplication
 
 # setup
@@ -366,6 +366,13 @@ def save_midi_config():
     with open(midi_json_path, 'w') as f:
         json.dump(data, f, indent=4)
     return '', 204
+
+@app.route('/reset-config', methods=['POST'])
+def reset_config_flask():
+    global OPZ_MOUNT_PATH
+    OPZ_MOUNT_PATH = ""
+    reset_config()
+    return jsonify({"success": True, "message": "Configuration reset successfully"})
 
 if __name__ == "__main__":
     app.run(debug=False)
