@@ -1,7 +1,8 @@
 :root {
-    --primary-color: #cc0c2f;
-    --secondary-color: #027340;
-    --tertiary-color: #0186bb;
+    --first-color: #027340;
+    --second-color: #0186bb;
+    --third-color: #d6a212;
+    --fourth-color: #cc0c2f;
     --background-color: #a1a1a1;
     --offwhite: #e5e5e5;
     --text-color: #212529;
@@ -10,6 +11,11 @@
 body {
     background-color: var(--offwhite);
 }
+
+.btn-primary {
+    background-color: var(--second-color);
+}
+
 .samplepackbox {
     background-color: var(--background-color);
     padding: 20px;
@@ -22,6 +28,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
 }
 
 .sampleslot.filled {

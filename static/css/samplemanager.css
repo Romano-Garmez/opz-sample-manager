@@ -1,8 +1,8 @@
-.delete-button {
+.delete-btn {
     display: inline-block;
-    margin-top: 5px;
-    padding: 5px 10px;
-    background-color: red;
+    margin-left: 5px;
+    border-radius: 10px;
+    background-color: var(--fourth-color);
     color: white;
     border: none;
     cursor: pointer;
