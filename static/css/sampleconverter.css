@@ -1,0 +1,13 @@
+.samplepackbox.filled {
+    background-color: #63cc73;
+}
+
+.samplepackbox.drag-hover {
+    background-color: #d0ebff;
+    border: 2px dashed #339af0;
+}
+
+.samplepackbox.dragover {
+    background-color: #d0ebff;
+    border: 2px dashed #339af0;
+}

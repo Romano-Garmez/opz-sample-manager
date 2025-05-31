@@ -26,12 +26,3 @@
     border: 2px dashed #339af0;
 }
 
-.delete-button {
-    display: inline-block;
-    margin-top: 5px;
-    padding: 5px 10px;
-    background-color: red;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
