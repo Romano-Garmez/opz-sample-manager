@@ -1,0 +1,26 @@
+#config-form {
+    background-color: var(--background-color);
+    padding: 2px;
+}
+
+.config-item {
+    background-color: var(--offwhite);
+    margin: 2%;
+    padding: 2%;
+    border-radius: 10px;
+}
+
+.config-number-input {
+    width: 70px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.config-array{
+    margin: 20px
+}
+
+.toggle-checkbox{
+    margin-left: 10px;
+}

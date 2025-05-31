@@ -1,3 +1,4 @@
+import json
 import sys
 from flask import Flask, render_template, request, jsonify
 import html
@@ -53,6 +54,10 @@ def sampleconverter():
 @app.route("/samplemanager")
 def samplemanager():
     return render_template("samplemanager.html")
+
+@app.route("/configeditor")
+def configeditor():
+    return render_template("configeditor.html")
 
 
 @app.route("/save-opz-dir", methods=["POST"])
@@ -290,6 +295,34 @@ def open_explorer():
         return jsonify({"status": "opened", "path": folder_path}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/get-config/general')
+def get_general_config():
+    general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
+    with open(general_json_path) as f:
+        return jsonify(json.load(f))
+    
+@app.route('/get-config/midi')
+def get_midi_config():
+    midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
+    with open(midi_json_path) as f:
+        return jsonify(json.load(f))
+
+@app.route('/save-config/general', methods=['POST'])
+def save_general_config():
+    general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
+    data = request.get_json()
+    with open(general_json_path, 'w') as f:
+        json.dump(data, f, indent=4)
+    return '', 204
+
+@app.route('/save-config/midi', methods=['POST'])
+def save_midi_config():
+    midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
+    data = request.get_json()
+    with open(midi_json_path, 'w') as f:
+        json.dump(data, f, indent=4)
+    return '', 204
 
 if __name__ == "__main__":
     app.run(debug=False)
