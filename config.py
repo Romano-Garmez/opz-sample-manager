@@ -14,3 +14,15 @@ def load_config():
 def save_config(config_dict):
     with open(CONFIG_PATH, "w") as f:
         json.dump(config_dict, f, indent=4)
+
+def reset_config():
+    if os.path.exists(CONFIG_PATH):
+        print(f"Resetting configuration by clearing {CONFIG_PATH}")
+        with open(CONFIG_PATH, "w") as f:
+            json.dump({}, f, indent=4)
+    else:
+        print("Config file does not exist, creating empty config.")
+        with open(CONFIG_PATH, "w") as f:
+            json.dump({}, f, indent=4)
+    print("Configuration reset successfully.")
+    return {}  # return empty config after reset
