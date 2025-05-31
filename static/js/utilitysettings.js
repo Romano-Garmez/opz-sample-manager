@@ -14,6 +14,7 @@ function resetConfig() {
 }
 
 function openPathPicker(endpoint, inputId, infoId, configOption, autoSet = false) {
+  // autoSet determines if this will automatically send the path it gets off to the flask server to set & save the config option - defaults to false
   fetch(endpoint)
     .then(res => res.json())
     .then(data => {
@@ -36,6 +37,7 @@ function openPathPicker(endpoint, inputId, infoId, configOption, autoSet = false
 
 
 function setConfigPath(configOption, inputId, infoId = null) {
+  //does this based on the value of the inputId thing, might be worth changing that
   const path = document.getElementById(inputId).value;
   console.log(`Setting config "${configOption}" to path:`, path);
 
@@ -66,6 +68,7 @@ function setConfigPath(configOption, inputId, infoId = null) {
 
 
 function removeConfigPath(configOption, inputId, infoId = null) {
+  // tells flask to delete this config option
   fetch("/remove-config-setting", {
     method: "POST",
     headers: {
