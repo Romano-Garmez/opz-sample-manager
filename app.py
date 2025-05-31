@@ -293,12 +293,26 @@ def get_general_config():
     general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
     with open(general_json_path) as f:
         return jsonify(json.load(f))
+    
+@app.route('/get-config/midi')
+def get_midi_config():
+    midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
+    with open(midi_json_path) as f:
+        return jsonify(json.load(f))
 
 @app.route('/save-config/general', methods=['POST'])
 def save_general_config():
     general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
     data = request.get_json()
     with open(general_json_path, 'w') as f:
+        json.dump(data, f, indent=4)
+    return '', 204
+
+@app.route('/save-config/midi', methods=['POST'])
+def save_midi_config():
+    midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
+    data = request.get_json()
+    with open(midi_json_path, 'w') as f:
         json.dump(data, f, indent=4)
     return '', 204
 
