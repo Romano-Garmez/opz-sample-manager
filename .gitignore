@@ -7,3 +7,6 @@ node_modules/
 
 # project config
 opz_sm_config.json
+
+#pycache
+__pycache__
