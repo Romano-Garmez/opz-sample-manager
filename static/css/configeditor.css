@@ -1,12 +1,13 @@
 #config-form {
     background-color: var(--background-color);
-    padding: 2px;
+    padding: 1px;
+    margin: 10px;
 }
 
 .config-item {
     background-color: var(--offwhite);
-    margin: 2%;
-    padding: 2%;
+    margin: 1%;
+    padding: 1%;
     border-radius: 10px;
 }
 
