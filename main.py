@@ -23,14 +23,17 @@ import sys
 
 # Function to start the Flask app in a separate thread
 def start_flask():
-    if sys.platform == "darwin":
-        print("Running on macOS")
-        subprocess.Popen(["python", "app.py"])
-        time.sleep(2)
-    elif sys.platform == "win32":
-        python_executable = os.path.join(os.getcwd(), ".venv", "Scripts", "python.exe")
-        subprocess.Popen([python_executable, "app.py"])
-        time.sleep(2)
+
+    try:
+        subprocess.run(
+            [sys.executable, "app.py"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+    except Exception as e:
+        return print(e)
+
+
 
 
 from PyQt5.QtWidgets import (
