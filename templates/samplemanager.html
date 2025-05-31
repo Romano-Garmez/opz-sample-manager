@@ -7,9 +7,9 @@
 {% block main %}
 <h1>Welcome to OP-Z Sample Manager</h1>
 
-<a href="/">Home Page</a>
+<button onclick="window.location.href='/'" class="btn btn-primary">Home Page</button>
 
-<button onclick="fetchOpzSamples()" id="list-files">List Files</button>
+<button onclick="fetchOpzSamples()" id="list-files" class="btn btn-primary">List Files</button>
 <div id="sample-output"></div>
 
 <div id="file-list">

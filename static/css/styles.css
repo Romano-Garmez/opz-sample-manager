@@ -1,12 +1,24 @@
+:root {
+    --primary-color: #cc0c2f;
+    --secondary-color: #027340;
+    --tertiary-color: #0186bb;
+    --background-color: #a1a1a1;
+    --offwhite: #e5e5e5;
+    --text-color: #212529;
+}
+
+body {
+    background-color: var(--offwhite);
+}
 .samplepackbox {
-    background-color: #f5f5f5;
+    background-color: var(--background-color);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .sampleslot {
-    background-color: #fff;
+    background-color: var(--background-color);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
