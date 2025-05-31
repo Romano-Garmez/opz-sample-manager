@@ -1,4 +1,12 @@
+#node and python dependencies
 node_modules/
 .venv/
 
+# macos
 .DS_Store
+
+# project config
+opz_sm_config.json
+
+#pycache
+__pycache__

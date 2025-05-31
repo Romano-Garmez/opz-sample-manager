@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
+from PyQt5 import QtGui
 import subprocess
 import time
 import os
@@ -42,6 +43,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("OP-Z Sample Manager")
+        self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'static', 'favicon.png')))
         self.setGeometry(100, 100, 1280, 720)
 
         # Create a web view and load the Flask app

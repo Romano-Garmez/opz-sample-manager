@@ -7,13 +7,16 @@ import os
 import werkzeug.utils
 import subprocess
 import uuid
+from config import load_config, save_config
 import threading
 import tkinter as tk
 from tkinter import filedialog
 
+# setup
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+# constants
 NUMBER_OF_SAMPLE_TYPES = 8
 NUMBER_OF_SAMPLES_PER_SLOT = 10  # Number of samples to read
 SAMPLE_CATEGORIES = [
@@ -26,14 +29,12 @@ SAMPLE_CATEGORIES = [
     "7-arpeggio",
     "8-chord",
 ]
-
-OPZ_MOUNT_PATH = None  # Global variable to store the OP-Z mount path
-
 sample_data = [
     [{"path": None} for _ in range(NUMBER_OF_SAMPLES_PER_SLOT)]
     for _ in range(NUMBER_OF_SAMPLE_TYPES)
 ]
 
+# Create necessary directories
 UPLOAD_FOLDER = "uploads"
 CONVERTED_FOLDER = "converted"
 SYN_CONVERTED_FOLDER = "converted/synth"
@@ -43,6 +44,9 @@ os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(SYN_CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
+# config
+config = load_config()
+OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH", "")  # Global variable to store the OP-Z mount path
 
 @app.route("/")
 def index():
@@ -80,6 +84,8 @@ def process_directory():
     files = os.listdir(directory)
     print(f"Files in directory {directory}: {files}")
     OPZ_MOUNT_PATH = directory
+    config["OPZ_MOUNT_PATH"] = OPZ_MOUNT_PATH
+    save_config(config)
     return jsonify({"success": True, "files": files})
 
 
