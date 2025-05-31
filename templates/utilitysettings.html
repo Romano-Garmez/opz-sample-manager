@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{%block stylesheets %}
+<link rel="stylesheet" href="/static/css/sampleconverter.css">
+{%endblock%}
+
+{%block title %}
+<title>OP-Z Sample Manager and Converter Utility Settings</title>
+{%endblock%}
+
+{% block main %}
+<h1>Welcome to the OP-Z Sample Manager and Converter Utility Settings</h1>
+
+<button onclick="window.location.href='/'" class="btn btn-primary">Home Page</button>
+
+<button onclick="openFilePicker()">Pick a File</button>
+<p id="result"></p>
+
+
+
+
+<script src="/static/js/utilitysettings.js"></script>
+
+{% endblock %}
+
+</html>

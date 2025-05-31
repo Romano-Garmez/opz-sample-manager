@@ -7,6 +7,9 @@ import os
 import werkzeug.utils
 import subprocess
 import uuid
+import threading
+import tkinter as tk
+from tkinter import filedialog
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -59,6 +62,9 @@ def samplemanager():
 def configeditor():
     return render_template("configeditor.html")
 
+@app.route("/utilitysettings")
+def utilitysettings():
+    return render_template("utilitysettings.html")
 
 @app.route("/save-opz-dir", methods=["POST"])
 def process_directory():
@@ -296,6 +302,35 @@ def open_explorer():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+    
+@app.route('/get-file-path-from-user')
+def get_file_path_from_user():
+    path = user_select_path()
+    if path:
+        return jsonify({"path": path})
+    else:
+        return jsonify({"error": "No file selected"}), 400
+    
+
+def user_select_path():
+    result = [None]
+
+    def pick():
+        import tkinter as tk
+        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
+        # TODO: force the file dialoge to the top and / or hide the pyqt5 window
+        result[0] = filedialog.askopenfilename()
+        root.destroy()
+
+    t = threading.Thread(target=pick)
+    t.start()
+    t.join()
+
+    return result[0]
+
+
 @app.route('/get-config/general')
 def get_general_config():
     general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
