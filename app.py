@@ -8,9 +8,7 @@ import werkzeug.utils
 import subprocess
 import uuid
 from config import load_config, save_config
-import threading
-import tkinter as tk
-from tkinter import filedialog
+from PyQt5.QtWidgets import QFileDialog, QApplication
 
 # setup
 app = Flask(__name__)
@@ -319,14 +317,16 @@ def get_file_path_from_user():
     
 
 def user_select_path():
-
-    root = tk.Tk()
-    root.withdraw()
-    # TODO: force the file dialoge to the top and / or hide the pyqt5 window
-    result = filedialog.askopenfilename()
-    root.destroy()
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     
-    return result
+    file_dialog = QFileDialog()
+    file_dialog.setFileMode(QFileDialog.ExistingFile)
+    if file_dialog.exec_():
+        selected_files = file_dialog.selectedFiles()
+        return selected_files[0]
+    return None
 
 
 @app.route('/get-config/general')
