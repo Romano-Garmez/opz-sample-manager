@@ -1,7 +1,10 @@
 let storageUsed = 0;
 let TOTAL_STORAGE = 32000; // 32 MB total storage
+let numSamples = 0;
+let MAX_SAMPLES = 40; // maximum number of samples allowed
 
 function updateStorageDisplay() {
+    // Update the storage info display
     const storagePercentElem = document.getElementById("storage-percent");
     const percent = ((storageUsed / TOTAL_STORAGE) * 100).toFixed(1);
     storagePercentElem.textContent = `${percent}%`;
@@ -12,6 +15,18 @@ function updateStorageDisplay() {
     const storageFreeElem = document.getElementById("storage-free");
     const freeSpace = TOTAL_STORAGE - storageUsed;
     storageFreeElem.textContent = `${(freeSpace / 1024).toFixed(1)} KB`;
+
+    //samples
+    const samplesPercentElem = document.getElementById("samples-percent");
+    const samplesPercent = ((numSamples / MAX_SAMPLES) * 100).toFixed(1);
+    samplesPercentElem.textContent = `${samplesPercent}%`;
+
+    const samplesUsedElem = document.getElementById("samples-used");
+    samplesUsedElem.textContent = `${numSamples}`;
+
+    const samplesFreeElem = document.getElementById("samples-free");
+    const freeSamples = MAX_SAMPLES - numSamples;
+    samplesFreeElem.textContent = `${freeSamples}`;
 }
 
 
@@ -24,6 +39,7 @@ async function fetchOpzSamples() {
         const data = await response.json();
 
         storageUsed = 0;
+        numSamples = 0;
 
         // Clear existing slots
         data.categories.forEach((category, catIndex) => {
@@ -89,6 +105,9 @@ async function fetchOpzSamples() {
                 // Display sample info
                 const filename = slot.filename || "(empty)";
                 const filesize = slot.filesize ? ` (${(slot.filesize / 1024).toFixed(1)} KB)` : "";
+                if (typeof slot.filename === "string" && slot.filename !== "(empty)" && !slot.filename.startsWith("~")) {
+                    numSamples++;
+                }
                 if (slot.filesize) {
                     storageUsed += slot.filesize / 1024; // accumulate storage used in KB
                 }
