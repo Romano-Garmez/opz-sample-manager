@@ -1,25 +1,9 @@
-async function openFilePicker() {
-  const res = await fetch("/get-user-file-path");
-  const data = await res.json();
-  const input = document.getElementById("ffmpeg-path-holder");
-
-  if (res.ok) {
-    input.value = data.path;
-    updateInputWidth(input); // Trigger resize
-
-  } else {
-    document.getElementById("ffmpeg-info").textContent = "Something went wrong fetching the set file path";
-  }
-}
-
-
 function resetConfig() {
   fetch('/reset-config', {
     method: 'POST'
   })
     .then(response => response.json())
     .then(data => {
-      // Optionally show a message or reload the page
       alert('Config reset! Please restart the app.');
       window.location.reload();
     })
@@ -29,35 +13,98 @@ function resetConfig() {
     });
 }
 
-function setFfmpegPath(newPath) {
+function openPathPicker(endpoint, inputId, infoId, configOption, autoSet = false) {
+  fetch(endpoint)
+    .then(res => res.json())
+    .then(data => {
+      const input = document.getElementById(inputId);
+      if (data.path) {
+        input.value = data.path;
+        updateInputWidth(input);
+        if (autoSet && configOption) {
+          setConfigPath(configOption, inputId, infoId);
+        }
+      } else {
+        document.getElementById(infoId).textContent = "Failed to get path.";
+      }
+    })
+    .catch(err => {
+      console.error("Error getting path:", err);
+      document.getElementById(infoId).textContent = "Error communicating with server.";
+    });
+}
 
-  fetch("/set-ffmpeg-path", {
+
+function setConfigPath(configOption, inputId, infoId = null) {
+  const path = document.getElementById(inputId).value;
+  console.log(`Setting config "${configOption}" to path:`, path);
+
+  fetch("/set-config-setting", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ path: newPath })
+    body: JSON.stringify({
+      config_option: configOption,
+      config_value: path
+    })
   })
     .then(res => {
-      if (res.ok) {
-        document.getElementById("ffmpeg-info").textContent = "Path set successfully!";
-      } else {
-        document.getElementById("ffmpeg-info").textContent = "Failed to set FFmpeg path.";
+      if (infoId) {
+        document.getElementById(infoId).textContent =
+          res.ok ? "Path set successfully!" : "Failed to set path.";
       }
+      console.log(res.ok ? `Successfully set "${configOption}"` : `Failed to set "${configOption}". HTTP status: ${res.status}`);
     })
     .catch(err => {
-      console.error("Error setting path:", err);
-      document.getElementById("ffmpeg-info").textContent = "Error communicating with server.";
+      console.error(`Error while setting "${configOption}":`, err);
+      if (infoId) {
+        document.getElementById(infoId).textContent = "Error communicating with server.";
+      }
     });
 }
 
-async function setCurrentFilePathFromConfig() {
-  const response = await fetch("/get-ffmpeg-path");
-  const data = await response.json();
 
-  const input = document.getElementById("ffmpeg-path-holder");
-  input.value = data.path;
-  updateInputWidth(input); // Trigger resize
+function removeConfigPath(configOption, inputId, infoId = null) {
+  fetch("/remove-config-setting", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ config_option: configOption })
+  })
+    .then(res => res.json())
+    .then(data => {
+      const input = document.getElementById(inputId);
+      if (data.success) {
+        input.value = "";
+        updateInputWidth(input);
+        if (infoId) {
+          document.getElementById(infoId).textContent = "Path removed.";
+        }
+        console.log(`Successfully removed "${configOption}"`);
+      } else {
+        if (infoId) {
+          document.getElementById(infoId).textContent = "Failed to remove path.";
+        }
+        console.warn(`Failed to remove "${configOption}":`, data);
+      }
+    })
+    .catch(err => {
+      console.error(`Error while removing "${configOption}":`, err);
+      if (infoId) {
+        document.getElementById(infoId).textContent = "Error communicating with server.";
+      }
+    });
+}
+
+
+async function loadConfigPath(configOption, inputId) {
+  const res = await fetch(`/get-config-setting?config_option=${configOption}`);
+  const data = await res.json();
+  const input = document.getElementById(inputId);
+  input.value = data.config_value || "";
+  updateInputWidth(input);
 }
 
 function enableAutoResizeInput(inputElement, minWidth = 200, padding = 20) {
@@ -76,11 +123,9 @@ function enableAutoResizeInput(inputElement, minWidth = 200, padding = 20) {
   inputElement.addEventListener("input", update);
   update(); // initial run
 
-  // Attach for reuse
   inputElement._resizeHandler = update;
 }
 
-// Optional: expose if called from elsewhere
 function updateInputWidth(inputElement) {
   if (inputElement && inputElement._resizeHandler) {
     inputElement._resizeHandler();
@@ -88,7 +133,9 @@ function updateInputWidth(inputElement) {
 }
 
 window.onload = function () {
-  setCurrentFilePathFromConfig();
-  const input = document.getElementById("ffmpeg-path-holder");
-  enableAutoResizeInput(input);
+  loadConfigPath("FFMPEG_PATH", "ffmpeg-path-holder");
+  loadConfigPath("OPZ_MOUNT_PATH", "opz-path-holder");
+
+  enableAutoResizeInput(document.getElementById("ffmpeg-path-holder"));
+  enableAutoResizeInput(document.getElementById("opz-path-holder"));
 };
