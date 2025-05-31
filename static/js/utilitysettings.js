@@ -1,5 +1,5 @@
 async function openFilePicker() {
-    const res = await fetch("/get-file-path-from-user");
+    const res = await fetch("/get-user-file-path");
     document.getElementById("result").textContent = "Look behind the app for the file browser lol.";
     const data = await res.json();
     if (res.ok) {

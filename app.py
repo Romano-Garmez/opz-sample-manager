@@ -307,26 +307,36 @@ def open_explorer():
         return jsonify({"error": str(e)}), 500
     
     
-@app.route('/get-file-path-from-user')
-def get_file_path_from_user():
-    path = user_select_path()
-    if path:
-        return jsonify({"path": path})
-    else:
-        return jsonify({"error": "No file selected"}), 400
-    
 
-def user_select_path():
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-    
-    file_dialog = QFileDialog()
-    file_dialog.setFileMode(QFileDialog.ExistingFile)
-    if file_dialog.exec_():
-        selected_files = file_dialog.selectedFiles()
-        return selected_files[0]
-    return None
+@app.route("/get-user-file-path")
+def get_user_file():
+    print("here")
+    return run_dialog("file")
+
+@app.route("/get-user-folder-path")
+def get_user_folder():
+    return run_dialog("folder")
+
+@app.route("/get-save-location-path")
+def get_save_location():
+    return run_dialog("save")
+
+def run_dialog(mode):
+    try:
+        result = subprocess.run(
+            [sys.executable, "dialog_runner.py", mode],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30
+        )
+        path = result.stdout.decode().strip()
+        if os.path.exists(path) or mode == "save":
+            return jsonify({"path": path})
+        else:
+            return jsonify({"error": "No selection made"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/get-config/general')
