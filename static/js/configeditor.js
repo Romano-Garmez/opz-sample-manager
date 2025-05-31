@@ -118,3 +118,24 @@ document.getElementById('config-select').addEventListener('change', (e) => {
 });
 
 loadConfig(currentConfigName);
+
+
+async function pollForMount(retries = 60, delay = 2000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch('/get-opz-mount-path');
+            const data = await res.json();
+
+            if (data["OPZ_MOUNT_PATH"]) {
+                await loadConfig(currentConfigName);
+                return;
+            }
+        } catch (err) {
+            console.error("Failed to check mount path:", err);
+        }
+        await new Promise(r => setTimeout(r, delay));
+    }
+
+    console.warn("Mount path not found after polling.");
+}
+pollForMount();

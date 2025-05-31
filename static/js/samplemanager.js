@@ -160,7 +160,7 @@ document.querySelectorAll(".samplepackbox").forEach(box => {
     });
 });
 
-async function pollForMount(retries = 15, delay = 2000) {
+async function pollForMount(retries = 60, delay = 2000) {
     for (let i = 0; i < retries; i++) {
         try {
             const res = await fetch('/get-opz-mount-path');
