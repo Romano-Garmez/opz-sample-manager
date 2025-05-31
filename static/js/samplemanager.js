@@ -1,3 +1,35 @@
+let storageUsed = 0;
+let TOTAL_STORAGE = 32000; // 32 MB total storage
+let numSamples = 0;
+let MAX_SAMPLES = 40; // maximum number of samples allowed
+
+function updateStorageDisplay() {
+    // Update the storage info display
+    const storagePercentElem = document.getElementById("storage-percent");
+    const percent = ((storageUsed / TOTAL_STORAGE) * 100).toFixed(1);
+    storagePercentElem.textContent = `${percent}%`;
+
+    const storageUsedElem = document.getElementById("storage-used");
+    storageUsedElem.textContent = `${(storageUsed / 1024).toFixed(1)} KB`;
+
+    const storageFreeElem = document.getElementById("storage-free");
+    const freeSpace = TOTAL_STORAGE - storageUsed;
+    storageFreeElem.textContent = `${(freeSpace / 1024).toFixed(1)} KB`;
+
+    //samples
+    const samplesPercentElem = document.getElementById("samples-percent");
+    const samplesPercent = ((numSamples / MAX_SAMPLES) * 100).toFixed(1);
+    samplesPercentElem.textContent = `${samplesPercent}%`;
+
+    const samplesUsedElem = document.getElementById("samples-used");
+    samplesUsedElem.textContent = `${numSamples}`;
+
+    const samplesFreeElem = document.getElementById("samples-free");
+    const freeSamples = MAX_SAMPLES - numSamples;
+    samplesFreeElem.textContent = `${freeSamples}`;
+}
+
+
 async function fetchOpzSamples() {
     try {
         const response = await fetch("http://localhost:5000/read-samples");
@@ -5,6 +37,9 @@ async function fetchOpzSamples() {
             throw new Error("Network response was not ok: " + response.statusText);
         }
         const data = await response.json();
+
+        storageUsed = 0;
+        numSamples = 0;
 
         // Clear existing slots
         data.categories.forEach((category, catIndex) => {
@@ -70,8 +105,15 @@ async function fetchOpzSamples() {
                 // Display sample info
                 const filename = slot.filename || "(empty)";
                 const filesize = slot.filesize ? ` (${(slot.filesize / 1024).toFixed(1)} KB)` : "";
+                if (typeof slot.filename === "string" && slot.filename !== "(empty)" && !slot.filename.startsWith("~")) {
+                    numSamples++;
+                }
+                if (slot.filesize) {
+                    storageUsed += slot.filesize / 1024; // accumulate storage used in KB
+                }
                 const text = document.createElement("span");
                 text.textContent = `Slot ${slotIndex + 1}: ${filename}${filesize}`;
+                updateStorageDisplay()
 
                 // Delete button
                 const deleteBtn = document.createElement("button");
@@ -160,7 +202,7 @@ document.querySelectorAll(".samplepackbox").forEach(box => {
     });
 });
 
-async function pollForMount(retries = 15, delay = 2000) {
+async function pollForMount(retries = 60, delay = 2000) {
     for (let i = 0; i < retries; i++) {
         try {
             const res = await fetch('/get-opz-mount-path');

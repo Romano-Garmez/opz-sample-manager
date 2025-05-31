@@ -29,3 +29,9 @@
     background-color: #d0ebff;
     border: 2px dashed #339af0;
 }
+
+#storage-info {
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--text-color);
+}
