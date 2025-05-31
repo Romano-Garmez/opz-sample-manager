@@ -44,8 +44,11 @@ os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
 # config
 config = load_config()
+#TODO: replace all instances of these global variables with relavant config.get / set ie config.get("FFMPEG_PATH", "")
+# that way we can have a "living config" and changes made to it will always be reflected. 
+# TODO: these global variables should be removed, see above.
 OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH", "")   # Global variable to store the OP-Z mount path
-FFMPEG_PATH = config.get("FFMPEG_PATH", "ffmpeg")   # Global variable to store the path to ffmpeg.exe for windows users. if there isn't one, default to ffmpeg, as that is what will work for mac / linux(?)
+FFMPEG_PATH = config.get("FFMPEG_PATH", "")   # Global variable to store the path to ffmpeg.exe for windows users. if there isn't one, default to ffmpeg, as that is what will work for mac / linux(?)
 
 @app.route("/")
 def index():
@@ -250,9 +253,14 @@ def convert_sample():
     # Determine max length
     max_duration = 12 if sample_type == "drum" else 6
 
+    if len(FFMPEG_PATH.strip()) == 0:
+        real_ffmpeg_path = "ffmpeg"
+    else :
+        real_ffmpeg_path = FFMPEG_PATH
+
     # ffmpeg command
     ffmpeg_cmd = [
-        "ffmpeg",
+        real_ffmpeg_path,
         "-i",
         input_path,
         "-af",
@@ -311,15 +319,17 @@ def open_explorer():
 
 @app.route("/get-user-file-path")
 def get_user_file():
-    print("here")
+    print("getting file path")
     return run_dialog("file")
 
 @app.route("/get-user-folder-path")
 def get_user_folder():
+    print("Getting Folder Path")
     return run_dialog("folder")
 
 @app.route("/get-save-location-path")
 def get_save_location():
+    print("Get save location path - redundant?")
     return run_dialog("save")
 
 def run_dialog(mode):
@@ -338,6 +348,19 @@ def run_dialog(mode):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/set-ffmpeg-path", methods=["POST"])
+def set_ffmpeg_path():
+    data = request.get_json()
+    _ffmpeg_path = data.get("path")
+    config["FFMPEG_PATH"] = _ffmpeg_path
+    save_config(config)
+    print("ffmpeg path config saved:",_ffmpeg_path)
+    return '', 204
+
+
+@app.route("/get-ffmpeg-path")
+def get_ffmpeg_path():
+    return jsonify({"success": True, "path": config.get("FFMPEG_PATH", "")})
 
 
 @app.route('/get-config/general')

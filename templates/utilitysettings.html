@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {%block stylesheets %}
-<link rel="stylesheet" href="/static/css/sampleconverter.css">
+<link rel="stylesheet" href="/static/css/utilitysettings.css">
 {%endblock%}
 
 {%block title %}
@@ -14,9 +14,12 @@
 <button onclick="window.location.href='/'" class="btn btn-primary">Home Page</button>
 <button onclick="resetConfig()" class="btn btn-danger">Reset Config</button>
 
+<div>If on windows, set this to wherever your ffmpeg.exe file is located.</div>
+<button onclick="openFilePicker()">Open File Browser</button>
+<input id="ffmpeg-path-holder" placeholder="ffmpeg file path goes here" style="min-width: 200px;" /><button onclick="setFfmpegPath(document.getElementById('ffmpeg-path-holder').value)">Set</button>
+<p id="ffmpeg-info"></p>
 
-<button onclick="openFilePicker()">If on windows, navigate to where your ffmpeg.exe is located.</button>
-<p id="result"></p>
+
 
 
 
