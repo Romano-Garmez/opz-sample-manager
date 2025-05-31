@@ -277,10 +277,6 @@ def convert_sample():
 
     return jsonify({"message": f"Converted to {output_filename} successfully."})
 
-@app.route('/get-opz-mount-path', methods=['GET'])
-def get_opz_mount_path():
-    return jsonify(OPZ_MOUNT_PATH=config.get("OPZ_MOUNT_PATH"))
-
 # open the sample converter's converted folder in the file explorer
 @app.route("/open-explorer", methods=["POST"])
 def open_explorer():
