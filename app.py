@@ -260,6 +260,7 @@ def convert_sample():
     except Exception as e:
         # while trying to 
         print("Unknown error while running attempting to run the ffmpeg subprocess.")
+        if(os.name == "nt"):
             print("We detected you are using windows. We repeatedly found this error ([WinError 2] The system cannot find the file specified) when the path to the ffmpeg exe was set incorrectly, maybe double check that if you are getting that error.")
         print("Error details:",e)
         return jsonify({"error": "Conversion failed"}), 500
