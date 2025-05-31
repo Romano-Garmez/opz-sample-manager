@@ -1,3 +1,4 @@
+import sys
 from flask import Flask, render_template, request, jsonify
 import html
 from flask_cors import CORS
@@ -272,6 +273,22 @@ def convert_sample():
 @app.route('/get-opz-mount-path', methods=['GET'])
 def get_opz_mount_path():
     return jsonify(OPZ_MOUNT_PATH=OPZ_MOUNT_PATH)
+
+# open the sample converter's converted folder in the file explorer
+@app.route("/open-explorer", methods=["POST"])
+def open_explorer():
+    folder_path = os.path.join(os.path.abspath("."), CONVERTED_FOLDER)
+    try:
+        if sys.platform.startswith("win"):
+            subprocess.Popen(["explorer", folder_path])
+        elif sys.platform.startswith("darwin"):
+            subprocess.Popen(["open", folder_path])
+        else:  # Linux and others
+            subprocess.Popen(["xdg-open", folder_path])
+
+        return jsonify({"status": "opened", "path": folder_path}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=False)

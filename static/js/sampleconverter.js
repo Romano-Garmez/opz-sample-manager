@@ -33,6 +33,17 @@ function setupDragDrop(id, type) {
     });
 }
 
+function openExplorer() {
+    fetch("/open-explorer", { method: "POST" })
+      .then(response => {
+        if (!response.ok) throw new Error("Request failed");
+        return response.json();
+      })
+      .catch(err => {
+        console.error("Error:", err);
+      });
+  }
+
 document.addEventListener('DOMContentLoaded', () => {
     setupDragDrop('drum-samples', 'drum');
     setupDragDrop('synth-samples', 'synth');

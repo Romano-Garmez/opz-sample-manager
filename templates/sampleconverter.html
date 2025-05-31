@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{%block stylesheets %}
+<link rel="stylesheet" href="/static/css/sampleconverter.css">
+{%endblock%}
+
 {%block title %}
 <title>OP-Z Sample Converter</title>
 {%endblock%}
@@ -7,13 +11,15 @@
 {% block main %}
 <h1>Welcome to OP-Z Sample Converter</h1>
 
-<a href="/">Home Page</a>
+<button onclick="window.location.href='/'" class="btn btn-primary">Home Page</button>
+
+<button onclick="openExplorer()" class="btn btn-primary">Open Converted Directory</button>
 
 <div id="file-list">
     <h3>Drum Samples</h3>
-    <div class="sampleslot" id="drum-samples"></div>
+    <div class="samplepackbox" id="drum-samples"></div>
     <h3>Synth Samples</h3>
-    <div class="sampleslot" id="synth-samples"></div>
+    <div class="samplepackbox" id="synth-samples"></div>
 </div>
 
 
