@@ -319,22 +319,14 @@ def get_file_path_from_user():
     
 
 def user_select_path():
-    result = [None]
 
-    def pick():
-        import tkinter as tk
-        from tkinter import filedialog
-        root = tk.Tk()
-        root.withdraw()
-        # TODO: force the file dialoge to the top and / or hide the pyqt5 window
-        result[0] = filedialog.askopenfilename()
-        root.destroy()
-
-    t = threading.Thread(target=pick)
-    t.start()
-    t.join()
-
-    return result[0]
+    root = tk.Tk()
+    root.withdraw()
+    # TODO: force the file dialoge to the top and / or hide the pyqt5 window
+    result = filedialog.askopenfilename()
+    root.destroy()
+    
+    return result
 
 
 @app.route('/get-config/general')
