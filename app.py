@@ -44,11 +44,9 @@ os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
 # config
 config = load_config()
-#TODO: replace all instances of these global variables with relavant config.get / set ie config.get("FFMPEG_PATH", "")
-# that way we can have a "living config" and changes made to it will always be reflected. 
-# TODO: these global variables should be removed, see above.
-OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH", "")   # Global variable to store the OP-Z mount path
-FFMPEG_PATH = config.get("FFMPEG_PATH", "")   # Global variable to store the path to ffmpeg.exe for windows users. if there isn't one, default to ffmpeg, as that is what will work for mac / linux(?)
+# leaving these here to remind ourselves what config options we have. maybe remove in the future?
+config.get("OPZ_MOUNT_PATH", "")   # the OP-Z mount path
+config.get("FFMPEG_PATH", "")   #  path to ffmpeg.exe for windows users. if there isn't one, default to ffmpeg, as that is what will work for mac / linux(?)
 
 @app.route("/")
 def index():
@@ -72,27 +70,11 @@ def configeditor():
 def utilitysettings():
     return render_template("utilitysettings.html")
 
-@app.route("/save-opz-dir", methods=["POST"])
-def process_directory():
-    global OPZ_MOUNT_PATH
-
-    data = request.get_json()
-    directory = data.get("directory")
-
-    if not directory or not os.path.exists(directory):
-        return jsonify({"success": False, "error": "Invalid directory"})
-
-    # Example: List files in the directory
-    files = os.listdir(directory)
-    print(f"Files in directory {directory}: {files}")
-    OPZ_MOUNT_PATH = directory
-    config["OPZ_MOUNT_PATH"] = OPZ_MOUNT_PATH
-    save_config(config)
-    return jsonify({"success": True, "files": files})
-
 
 @app.route("/read-samples")
 def read_opz():
+
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     sample_data = []
     print(f"Reading samples from: {OPZ_MOUNT_PATH}")
 
@@ -132,6 +114,7 @@ def upload_sample():
     if not category or not slot or not file:
         return {"error": "Missing category, slot, or file"}, 400
 
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     # Make sure the directory exists
     target_dir = os.path.join(
         OPZ_MOUNT_PATH, "samplepacks", category, f"{int(slot)+1:02d}"
@@ -170,6 +153,7 @@ def delete_sample():
     if not sample_path or not os.path.isfile(sample_path):
         return {"error": "Invalid path"}, 400
 
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     # prevent deleting files outside the samplepacks directory, probably not needed but just in case
     if not sample_path.startswith(os.path.join(OPZ_MOUNT_PATH, "samplepacks")):
         return {"error": "Unauthorized path"}, 403
@@ -195,6 +179,7 @@ def move_sample():
         return {"error": "Source file doesn't exist"}, 404
 
     # Resolve destination path
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     filename = os.path.basename(source_path)
     target_dir = os.path.join(
         OPZ_MOUNT_PATH, "samplepacks", target_category, f"{int(target_slot)+1:02d}"
@@ -253,14 +238,11 @@ def convert_sample():
     # Determine max length
     max_duration = 12 if sample_type == "drum" else 6
 
-    if len(FFMPEG_PATH.strip()) == 0:
-        real_ffmpeg_path = "ffmpeg"
-    else :
-        real_ffmpeg_path = FFMPEG_PATH
+    ffmpeg_path = config.get("FFMPEG_PATH", "ffmpeg")
 
     # ffmpeg command
     ffmpeg_cmd = [
-        real_ffmpeg_path,
+        ffmpeg_path,
         "-i",
         input_path,
         "-af",
@@ -297,7 +279,7 @@ def convert_sample():
 
 @app.route('/get-opz-mount-path', methods=['GET'])
 def get_opz_mount_path():
-    return jsonify(OPZ_MOUNT_PATH=OPZ_MOUNT_PATH)
+    return jsonify(OPZ_MOUNT_PATH=config.get("OPZ_MOUNT_PATH"))
 
 # open the sample converter's converted folder in the file explorer
 @app.route("/open-explorer", methods=["POST"])
@@ -319,12 +301,12 @@ def open_explorer():
 
 @app.route("/get-user-file-path")
 def get_user_file():
-    print("getting file path")
+    print("getting file path from user")
     return run_dialog("file")
 
 @app.route("/get-user-folder-path")
 def get_user_folder():
-    print("Getting Folder Path")
+    print("Getting Folder Path from user")
     return run_dialog("folder")
 
 @app.route("/get-save-location-path")
@@ -341,6 +323,7 @@ def run_dialog(mode):
             timeout=30
         )
         path = result.stdout.decode().strip()
+        print("got path of:",path,"from user.")
         if os.path.exists(path) or mode == "save":
             return jsonify({"path": path})
         else:
@@ -348,35 +331,69 @@ def run_dialog(mode):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/set-ffmpeg-path", methods=["POST"])
-def set_ffmpeg_path():
-    data = request.get_json()
-    _ffmpeg_path = data.get("path")
-    config["FFMPEG_PATH"] = _ffmpeg_path
-    save_config(config)
-    print("ffmpeg path config saved:",_ffmpeg_path)
-    return '', 204
+@app.route('/set-config-setting', methods=['POST'])
+def set_config_setting():
+    try:
+        data = request.json
+        print("Incoming JSON data:", data)
 
+        config_option = data.get("config_option")
+        config_value = data.get("config_value")
 
-@app.route("/get-ffmpeg-path")
-def get_ffmpeg_path():
-    return jsonify({"success": True, "path": config.get("FFMPEG_PATH", "")})
+        if config_option is None or config_value is None:
+            return jsonify({"error": "Missing 'config_option' or 'config_value'"}), 400
 
+        config[config_option] = config_value
+        save_config(config)
+        return jsonify({"success": True})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get-config-setting')
+def get_config_setting():
+    config_option = request.args.get("config_option")
+
+    if config_option is None:
+        return jsonify({"error": "Missing 'config_option' parameter"}), 400
+
+    config_value = config.get(config_option, "")
+    return jsonify({"success": True, "config_value": config_value})
+
+@app.route('/remove-config-setting', methods=['POST'])
+def remove_config_setting():
+    data = request.json
+    config_option = data.get("config_option")
+
+    if config_option is None:
+        return jsonify({"error": "Missing 'config_option'"}), 400
+
+    if config_option in config:
+        del config[config_option]
+        save_config()
+        return jsonify({"success": True})
+    else:
+        return jsonify({"error": "Config option not found"}), 404
 
 @app.route('/get-config/general')
 def get_general_config():
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
     with open(general_json_path) as f:
         return jsonify(json.load(f))
     
 @app.route('/get-config/midi')
 def get_midi_config():
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
     with open(midi_json_path) as f:
         return jsonify(json.load(f))
 
 @app.route('/save-config/general', methods=['POST'])
 def save_general_config():
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
     data = request.get_json()
     with open(general_json_path, 'w') as f:
@@ -385,6 +402,7 @@ def save_general_config():
 
 @app.route('/save-config/midi', methods=['POST'])
 def save_midi_config():
+    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
     data = request.get_json()
     with open(midi_json_path, 'w') as f:
@@ -393,8 +411,7 @@ def save_midi_config():
 
 @app.route('/reset-config', methods=['POST'])
 def reset_config_flask():
-    global OPZ_MOUNT_PATH
-    OPZ_MOUNT_PATH = ""
+    del config["OPZ_MOUNT_PATH"]
     reset_config()
     return jsonify({"success": True, "message": "Configuration reset successfully"})
 
