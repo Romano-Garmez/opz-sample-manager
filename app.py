@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 import html
-from flask_cors import CORS
+#from flask_cors import CORS
 import os
 import werkzeug.utils
 import subprocess
 import uuid
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+#CORS(app)  # Enable CORS for all routes
 
 NUMBER_OF_SAMPLE_TYPES = 8
 NUMBER_OF_SAMPLES_PER_SLOT = 10  # Number of samples to read
