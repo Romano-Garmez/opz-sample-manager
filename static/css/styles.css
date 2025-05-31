@@ -12,6 +12,10 @@ body {
     background-color: var(--offwhite);
 }
 
+.btn {
+    margin: 5px;
+}
+
 .btn-primary {
     background-color: var(--first-color);
 }
@@ -42,4 +46,17 @@ body {
     margin-top: 20px;
     margin-bottom: 20px;
     border-radius: 10px;
+}
+
+.container {
+    margin: auto;
+    padding: 10px;
+}
+
+h1 {
+    line-height: 2;
+}
+
+h3 {
+    line-height: 1.5;
 }
