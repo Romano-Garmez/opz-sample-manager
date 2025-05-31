@@ -9,6 +9,16 @@ function createNumberInput(name, value, idx = null, subIdx = null) {
   return input;
 }
 
+function createCheckboxInput(name, checked, idx = null) {
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.name = name;
+  input.checked = checked;
+  input.className = "toggle-checkbox";
+  if (idx !== null) input.dataset.index = idx;
+  return input;
+}
+
 async function loadConfig(configName) {
   const res = await fetch(`/get-config/${configName}`);
   const config = await res.json();
@@ -26,26 +36,28 @@ async function loadConfig(configName) {
     wrapper.appendChild(label);
 
     if (typeof value === 'boolean') {
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.name = key;
-      checkbox.checked = value;
-      checkbox.className = "toggle-checkbox";
-      wrapper.appendChild(checkbox);
+      // Single boolean
+      wrapper.appendChild(createCheckboxInput(key, value));
 
     } else if (typeof value === 'number') {
+      // Single number
       wrapper.appendChild(createNumberInput(key, value));
 
     } else if (Array.isArray(value)) {
       value.forEach((item, idx) => {
         const row = document.createElement('div');
-        row.className = "flex flex-wrap gap-2 mb-1";
+        row.className = "flex flex-wrap items-center gap-2 mb-1";
 
         if (Array.isArray(item)) {
+          // Nested array (e.g. parameter_cc_out)
           item.forEach((val, subIdx) => {
             row.appendChild(createNumberInput(key, val, idx, subIdx));
           });
+        } else if (typeof item === 'boolean') {
+          // Flat array of booleans (e.g. track_enable)
+          row.appendChild(createCheckboxInput(key, item, idx));
         } else {
+          // Flat array of numbers (e.g. track_channels)
           row.appendChild(createNumberInput(key, item, idx));
         }
 
@@ -67,9 +79,12 @@ document.getElementById('save-button').addEventListener('click', async () => {
     const subIdx = input.dataset.subindex;
 
     if (input.type === 'checkbox') {
-      // Always include booleans
-      updatedConfig[key] = updatedConfig[key] ?? false;
-      if (input.checked) updatedConfig[key] = true;
+      if (idx !== undefined && idx !== null) {
+        if (!Array.isArray(updatedConfig[key])) updatedConfig[key] = [];
+        updatedConfig[key][idx] = input.checked;
+      } else {
+        updatedConfig[key] = input.checked;
+      }
 
     } else if (input.type === 'number') {
       const num = parseInt(input.value);
@@ -90,11 +105,11 @@ document.getElementById('save-button').addEventListener('click', async () => {
   await fetch(`/save-config/${currentConfigName}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updatedConfig, null, 2)
+    body: JSON.stringify(updatedConfig)
   });
 });
 
-// Load the desired config file on page load (replace as needed)
+// Set up config file selector and initial load
 let currentConfigName = 'general';
 
 document.getElementById('config-select').addEventListener('change', (e) => {
