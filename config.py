@@ -1,0 +1,16 @@
+import os
+import json
+
+CONFIG_PATH = "opz_sm_config.json"
+
+# Function to load the configuration from a JSON file
+def load_config():
+    if not os.path.exists(CONFIG_PATH):
+        return {}  # return empty config if file doesn't exist
+    with open(CONFIG_PATH, "r") as f:
+        return json.load(f)
+
+# Function to save the configuration to a JSON file
+def save_config(config_dict):
+    with open(CONFIG_PATH, "w") as f:
+        json.dump(config_dict, f, indent=4)
