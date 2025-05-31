@@ -14,14 +14,14 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 import subprocess
 import time
+import os
 
 
 # Function to start the Flask app in a separate thread
 def start_flask():
-    subprocess.Popen(
-        ["python", "app.py"]
-    )  # Use "python" instead of "python3" for cross-platform compatibility
-    time.sleep(2)  # Give Flask time to start
+    python_executable = os.path.join(os.getcwd(), ".venv", "Scripts", "python.exe")
+    subprocess.Popen([python_executable, "app.py"])
+    time.sleep(2)
 
 
 from PyQt5.QtWidgets import (
