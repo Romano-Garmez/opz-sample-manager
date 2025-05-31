@@ -1,3 +1,20 @@
+let storageUsed = 0;
+let TOTAL_STORAGE = 32000; // 32 MB total storage
+
+function updateStorageDisplay() {
+    const storagePercentElem = document.getElementById("storage-percent");
+    const percent = ((storageUsed / TOTAL_STORAGE) * 100).toFixed(1);
+    storagePercentElem.textContent = `${percent}%`;
+
+    const storageUsedElem = document.getElementById("storage-used");
+    storageUsedElem.textContent = `${(storageUsed / 1024).toFixed(1)} KB`;
+
+    const storageFreeElem = document.getElementById("storage-free");
+    const freeSpace = TOTAL_STORAGE - storageUsed;
+    storageFreeElem.textContent = `${(freeSpace / 1024).toFixed(1)} KB`;
+}
+
+
 async function fetchOpzSamples() {
     try {
         const response = await fetch("http://localhost:5000/read-samples");
@@ -5,6 +22,8 @@ async function fetchOpzSamples() {
             throw new Error("Network response was not ok: " + response.statusText);
         }
         const data = await response.json();
+
+        storageUsed = 0;
 
         // Clear existing slots
         data.categories.forEach((category, catIndex) => {
@@ -70,8 +89,12 @@ async function fetchOpzSamples() {
                 // Display sample info
                 const filename = slot.filename || "(empty)";
                 const filesize = slot.filesize ? ` (${(slot.filesize / 1024).toFixed(1)} KB)` : "";
+                if (slot.filesize) {
+                    storageUsed += slot.filesize / 1024; // accumulate storage used in KB
+                }
                 const text = document.createElement("span");
                 text.textContent = `Slot ${slotIndex + 1}: ${filename}${filesize}`;
+                updateStorageDisplay()
 
                 // Delete button
                 const deleteBtn = document.createElement("button");
