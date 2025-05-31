@@ -368,7 +368,7 @@ def remove_config_setting():
 
     if config_option in config:
         del config[config_option]
-        save_config()
+        save_config(config)
         return jsonify({"success": True})
     else:
         return jsonify({"error": "Config option not found"}), 404
