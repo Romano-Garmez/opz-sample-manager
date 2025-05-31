@@ -3,7 +3,7 @@ function createNumberInput(name, value, idx = null, subIdx = null) {
   input.type = 'number';
   input.name = name;
   input.value = value;
-  input.className = "w-16 p-1 border rounded";
+  input.className = "config-number-input";
   if (idx !== null) input.dataset.index = idx;
   if (subIdx !== null) input.dataset.subindex = subIdx;
   return input;
@@ -27,7 +27,7 @@ async function loadConfig(configName) {
 
   for (const [key, value] of Object.entries(config)) {
     const wrapper = document.createElement('div');
-    wrapper.className = "mb-4";
+    wrapper.className = "config-item";
 
     const label = document.createElement('label');
     label.textContent = key;
@@ -46,7 +46,7 @@ async function loadConfig(configName) {
     } else if (Array.isArray(value)) {
       value.forEach((item, idx) => {
         const row = document.createElement('div');
-        row.className = "flex flex-wrap items-center gap-2 mb-1";
+        row.className = "config-array";
 
         if (Array.isArray(item)) {
           // Nested array (e.g. parameter_cc_out)
