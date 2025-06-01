@@ -3,6 +3,15 @@ from tkinter import filedialog
 import sys
 import argparse
 
+"""
+
+
+    DO NOT CHANGE THE PRINT STATMENTS IN THIS TO THE LOGGER, IT WILL BREAK IT
+
+
+"""
+
+
 def show_dialog(mode):
     root = tk.Tk()
     root.withdraw()
