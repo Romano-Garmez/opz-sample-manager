@@ -1,0 +1,7 @@
+#input-size-measurer {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  font: inherit;
+}
+
