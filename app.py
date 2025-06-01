@@ -8,7 +8,7 @@ import werkzeug.utils
 import subprocess
 import uuid
 from config import load_config, save_config, reset_config
-from PyQt5.QtWidgets import QFileDialog, QApplication
+import logging
 
 # setup
 app = Flask(__name__)
@@ -42,11 +42,33 @@ os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(SYN_CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
+
+# I hate that all functions need to be defined before being used lol
+
+# set the flask logger level
+def set_logger_level(level_name: str):
+    level_name = level_name.upper()
+    level = getattr(logging, level_name, None)
+    if not isinstance(level, int):
+        raise ValueError(f"Invalid log level: {level_name}")
+
+    app.logger.setLevel(level)
+    app.logger.info(f"Log level set to {level_name}")
+
 # config
 config = load_config()
-# leaving these here to remind ourselves what config options we have. maybe remove in the future?
-config.get("OPZ_MOUNT_PATH", "")   # the OP-Z mount path
-config.get("FFMPEG_PATH", "")   #  path to ffmpeg.exe for windows users. if there isn't one, default to ffmpeg, as that is what will work for mac / linux(?)
+
+# if any of the config things need to do anything extra (ie set logging level) it happens here
+# this is run after each time a config setting is changed via set-config-setting
+def do_extra_config_setup():
+    app.logger.info("Updating all nessecary config options")
+    set_logger_level(config.get("LOGGER_LEVEL", "INFO"))
+
+do_extra_config_setup()
+
+app.logger.debug(f"Loaded Config Options:\n{json.dumps(config, indent=2, sort_keys=True)}")
+
+
 
 @app.route("/")
 def index():
@@ -76,7 +98,7 @@ def read_opz():
 
     OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
     sample_data = []
-    print(f"Reading samples from: {OPZ_MOUNT_PATH}")
+    app.logger.info(f"Reading samples from: {OPZ_MOUNT_PATH}")
 
     for category in SAMPLE_CATEGORIES:
         category_data = []
@@ -141,7 +163,7 @@ def upload_sample():
         }, 200
 
     except Exception as e:
-        print("Upload error:", e)
+        app.logger.error("Upload error:", e)
         return {"error": "File save failed"}, 500
 
 
@@ -162,7 +184,7 @@ def delete_sample():
         os.remove(sample_path)
         return {"status": "deleted"}, 200
     except Exception as e:
-        print(f"Error deleting file: {e}")
+        app.logger.error(f"Error deleting file: {e}")
         return {"error": "Failed to delete file"}, 500
 
 
@@ -215,7 +237,7 @@ def move_sample():
         return {"status": "moved", "path": escape(target_path)}, 200
 
     except Exception as e:
-        print("Move error:", e)
+        app.logger.error("Move error:", e)
         return {"error": "Move failed"}, 500
 
 
@@ -261,19 +283,22 @@ def convert_sample():
     try:
         subprocess.run(ffmpeg_cmd, check=True)
     except subprocess.CalledProcessError as e:
-        print("Subprocess Error:", e)
+        app.logger.error("Subprocess Error:", e)
         return jsonify({"error": "Conversion failed"}), 500
     except Exception as e:
         # while trying to 
-        print("Unknown error while running attempting to run the ffmpeg subprocess.")
+        app.logger.error("Unknown error while running attempting to run the ffmpeg subprocess.")
         if(os.name == "nt"):
-            print("We detected you are using windows. We repeatedly found this error ([WinError 2] The system cannot find the file specified) when the path to the ffmpeg exe was set incorrectly, maybe double check that if you are getting that error.")
-        print("Error details:",e)
+            app.logger.warning("We detected you are using windows. We repeatedly found this error ([WinError 2] The system cannot find the file specified) when the path to the ffmpeg exe was set incorrectly, maybe double check that if you are getting that error.")
+        app.logger.error("Error details:",e)
         return jsonify({"error": "Conversion failed"}), 500
     finally:
         # Clean up input file
         if os.path.exists(input_path):
             os.remove(input_path)
+            app.logger.info("Removed unconverted uploaded file")
+        else:
+            app.logger.warning("Did not find uploaded file and it was not removed")
 
     return jsonify({"message": f"Converted to {output_filename} successfully."})
 
@@ -297,17 +322,17 @@ def open_explorer():
 
 @app.route("/get-user-file-path")
 def get_user_file():
-    print("getting file path from user")
+    app.logger.info("Getting file path from user")
     return run_dialog("file")
 
 @app.route("/get-user-folder-path")
 def get_user_folder():
-    print("Getting Folder Path from user")
+    app.logger.info("Getting Folder Path from user")
     return run_dialog("folder")
 
 @app.route("/get-save-location-path")
 def get_save_location():
-    print("Get save location path - redundant?")
+    app.logger.info("Get save location path - redundant?")
     return run_dialog("save")
 
 def run_dialog(mode):
@@ -319,7 +344,7 @@ def run_dialog(mode):
             timeout=30
         )
         path = result.stdout.decode().strip()
-        print("got path of:",path,"from user.")
+        app.logger.debug("Got path of: %s from user.", path)
         if os.path.exists(path) or mode == "save":
             return jsonify({"path": path})
         else:
@@ -331,7 +356,7 @@ def run_dialog(mode):
 def set_config_setting():
     try:
         data = request.json
-        print("Incoming JSON data:", data)
+        app.logger.debug("Incoming JSON data: " + str(data))
 
         config_option = data.get("config_option")
         config_value = data.get("config_value")
@@ -341,6 +366,7 @@ def set_config_setting():
 
         config[config_option] = config_value
         save_config(config)
+        do_extra_config_setup()
         return jsonify({"success": True})
 
     except Exception as e:
