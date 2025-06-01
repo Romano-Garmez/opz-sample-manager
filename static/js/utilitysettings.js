@@ -135,9 +135,27 @@ function updateInputWidth(inputElement) {
   }
 }
 
+function setLoggerLevelFromDropdown() {
+  const level = document.getElementById("logger-level-select").value;
+  console.log(`Setting LOGGER_LEVEL to: ${level}`);
+  setConfigPath("LOGGER_LEVEL", "logger-level-select", "logger-info");
+}
+
+async function loadLoggerLevel() {
+  const res = await fetch("/get-config-setting?config_option=LOGGER_LEVEL");
+  const data = await res.json();
+
+  const select = document.getElementById("logger-level-select");
+  const level = data.config_value || "INFO"; // Default to INFO
+  select.value = level;
+  updateInputWidth(select);
+}
+
+
 window.onload = function () {
   loadConfigPath("FFMPEG_PATH", "ffmpeg-path-holder");
   loadConfigPath("OPZ_MOUNT_PATH", "opz-path-holder");
+  loadLoggerLevel();
 
   enableAutoResizeInput(document.getElementById("ffmpeg-path-holder"));
   enableAutoResizeInput(document.getElementById("opz-path-holder"));

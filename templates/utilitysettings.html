@@ -38,5 +38,18 @@
 <button onclick="removeConfigPath('OPZ_MOUNT_PATH', 'opz-path-holder', 'opz-info')" class="btn btn-warning">Remove</button>
 <p id="opz-info"></p>
 
+<hr>
+
+<!-- Logger Level Dropdown -->
+<div>Set logger verbosity level:</div>
+<select id="logger-level-select" onchange="setLoggerLevelFromDropdown()">
+  <option value="DEBUG">DEBUG</option>
+  <option value="INFO">INFO</option>
+  <option value="WARNING">WARNING</option>
+  <option value="ERROR">ERROR</option>
+  <option value="CRITICAL">CRITICAL</option>
+</select>
+<p id="logger-info"></p>
+
 <script src="/static/js/utilitysettings.js"></script>
 {% endblock %}
