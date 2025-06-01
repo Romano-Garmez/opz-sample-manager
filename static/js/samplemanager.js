@@ -205,7 +205,7 @@ document.querySelectorAll(".samplepackbox").forEach(box => {
 async function pollForMount(retries = 60, delay = 2000) {
     for (let i = 0; i < retries; i++) {
         try {
-            const res = await fetch('/get-opz-mount-path');
+            const res = await fetch(`/get-config-setting?config_option="OPZ_MOUNT_PATH"`);
             const data = await res.json();
 
             if (data["OPZ_MOUNT_PATH"]) {
