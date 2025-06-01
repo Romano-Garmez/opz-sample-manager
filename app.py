@@ -335,6 +335,11 @@ def get_save_location():
     app.logger.info("Get save location path - redundant?")
     return run_dialog("save")
 
+@app.route("/get-user-multiple-file-paths")
+def get_user_multiple_files():
+    app.logger.info("Getting multiple file paths from user")
+    return run_dialog("multi")
+
 def run_dialog(mode):
     try:
         result = subprocess.run(
@@ -343,12 +348,23 @@ def run_dialog(mode):
             stderr=subprocess.PIPE,
             timeout=30
         )
-        path = result.stdout.decode().strip()
-        app.logger.debug("Got path of: %s from user.", path)
-        if os.path.exists(path) or mode == "save":
-            return jsonify({"path": path})
+        output = result.stdout.decode().strip()
+
+        if mode == "multi":
+            paths = [line for line in output.splitlines() if line]
+            app.logger.debug("Got multiple paths: %s", paths)
+            if paths:
+                return jsonify({"paths": paths})
+            else:
+                return jsonify({"error": "No files selected"}), 400
+
+        # Single path case (file, folder, save)
+        if output and (os.path.exists(output) or mode == "save"):
+            app.logger.debug("Got path of: %s from user.", output)
+            return jsonify({"path": output})
         else:
             return jsonify({"error": "No selection made"}), 400
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
