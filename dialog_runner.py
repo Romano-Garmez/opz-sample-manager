@@ -2,6 +2,40 @@ import tkinter as tk
 from tkinter import filedialog
 import sys
 import argparse
+import subprocess
+import os
+from flask import jsonify
+
+
+def run_dialog(mode):
+    from app import app
+    try:
+        result = subprocess.run(
+            [sys.executable, "dialog_runner.py", mode],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30
+        )
+        output = result.stdout.decode().strip()
+
+        if mode == "multi":
+            paths = [line for line in output.splitlines() if line]
+            app.logger.debug("Got multiple paths: %s", paths)
+            if paths:
+                return jsonify({"paths": paths})
+            else:
+                return jsonify({"error": "No files selected"}), 400
+
+        # Single path case (file, folder, save)
+        if output and (os.path.exists(output) or mode == "save"):
+            app.logger.debug("Got path of: %s from user.", output)
+            return jsonify({"path": output})
+        else:
+            return jsonify({"error": "No selection made"}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 """
 
