@@ -7,8 +7,8 @@ import os
 import werkzeug.utils
 import subprocess
 import uuid
-from config import load_config, save_config, reset_config
-import logging
+from config import load_config, save_config, reset_config, run_config_tasks
+from dialog_runner import run_dialog
 
 # setup
 app = Flask(__name__)
@@ -43,31 +43,10 @@ os.makedirs(SYN_CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
 
-# I hate that all functions need to be defined before being used lol
-
-# set the flask logger level
-def set_logger_level(level_name: str):
-    level_name = level_name.upper()
-    level = getattr(logging, level_name, None)
-    if not isinstance(level, int):
-        raise ValueError(f"Invalid log level: {level_name}")
-
-    app.logger.setLevel(level)
-    app.logger.info(f"Log level set to {level_name}")
-
 # config
 config = load_config()
-
-# if any of the config things need to do anything extra (ie set logging level) it happens here
-# this is run after each time a config setting is changed via set-config-setting
-def do_extra_config_setup():
-    app.logger.info("Updating all nessecary config options")
-    set_logger_level(config.get("LOGGER_LEVEL", "INFO"))
-
-do_extra_config_setup()
-
+run_config_tasks()  # Initialize config settings
 app.logger.debug(f"Loaded Config Options:\n{json.dumps(config, indent=2, sort_keys=True)}")
-
 
 
 @app.route("/")
@@ -318,7 +297,7 @@ def open_explorer():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-    
+# Flask routes to run dialogs for file/folder selection
 
 @app.route("/get-user-file-path")
 def get_user_file():
@@ -340,34 +319,7 @@ def get_user_multiple_files():
     app.logger.info("Getting multiple file paths from user")
     return run_dialog("multi")
 
-def run_dialog(mode):
-    try:
-        result = subprocess.run(
-            [sys.executable, "dialog_runner.py", mode],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=30
-        )
-        output = result.stdout.decode().strip()
-
-        if mode == "multi":
-            paths = [line for line in output.splitlines() if line]
-            app.logger.debug("Got multiple paths: %s", paths)
-            if paths:
-                return jsonify({"paths": paths})
-            else:
-                return jsonify({"error": "No files selected"}), 400
-
-        # Single path case (file, folder, save)
-        if output and (os.path.exists(output) or mode == "save"):
-            app.logger.debug("Got path of: %s from user.", output)
-            return jsonify({"path": output})
-        else:
-            return jsonify({"error": "No selection made"}), 400
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
+# Flask routes to manage config for the sample manager app
 @app.route('/set-config-setting', methods=['POST'])
 def set_config_setting():
     try:
@@ -382,7 +334,7 @@ def set_config_setting():
 
         config[config_option] = config_value
         save_config(config)
-        do_extra_config_setup()
+        run_config_tasks()
         return jsonify({"success": True})
 
     except Exception as e:
@@ -415,6 +367,7 @@ def remove_config_setting():
     else:
         return jsonify({"error": "Config option not found"}), 404
 
+# Flask routes to edit config files on the OP-Z
 @app.route('/get-config/general')
 def get_general_config():
     OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")

@@ -1,7 +1,28 @@
 import os
 import json
 
+import logging
+
 CONFIG_PATH = "opz_sm_config.json"
+config = None
+
+# set the flask logger level
+def set_logger_level(level_name: str):
+    level_name = level_name.upper()
+    level = getattr(logging, level_name, None)
+    if not isinstance(level, int):
+        raise ValueError(f"Invalid log level: {level_name}")
+
+    from app import app
+    app.logger.setLevel(level)
+    app.logger.info(f"Log level set to {level_name}")
+
+# if any of the config things need to do anything extra (ie set logging level) it happens here
+# this is run after each time a config setting is changed via set-config-setting
+def run_config_tasks():
+    from app import app
+    app.logger.info("Updating all nessecary config options")
+    set_logger_level(config.get("LOGGER_LEVEL", "INFO"))
 
 # Function to load the configuration from a JSON file
 def load_config():
@@ -26,3 +47,6 @@ def reset_config():
             json.dump({}, f, indent=4)
     print("Configuration reset successfully.")
     return {}  # return empty config after reset
+
+
+config = load_config()
