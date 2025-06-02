@@ -48,6 +48,19 @@ config = load_config()
 run_config_tasks()  # Initialize config settings
 app.logger.debug(f"Loaded Config Options:\n{json.dumps(config, indent=2, sort_keys=True)}")
 
+def get_os():
+    if sys.platform.startswith("win"):
+        config["OS"] = "windows"
+        app.logger.info("Detected OS: Windows")
+        return "windows"
+    elif sys.platform.startswith("darwin"):
+        config["OS"] = "macos"
+        app.logger.info("Detected OS: macOS")
+        return "macos"
+    else:
+        config["OS"] = "linux"
+        app.logger.info("Detected OS: Linux")
+        return "linux"
 
 @app.route("/")
 def index():
@@ -266,9 +279,9 @@ def convert_sample():
         return jsonify({"error": "Conversion failed"}), 500
     except Exception as e:
         # while trying to 
-        app.logger.error("Unknown error while running attempting to run the ffmpeg subprocess.")
+        app.logger.error("Unknown error while running attempting to run the FFMPEG subprocess.")
         if(os.name == "nt"):
-            app.logger.warning("We detected you are using windows. We repeatedly found this error ([WinError 2] The system cannot find the file specified) when the path to the ffmpeg exe was set incorrectly, maybe double check that if you are getting that error.")
+            app.logger.warning("We detected you are using windows. We repeatedly found this error ([WinError 2] The system cannot find the file specified) when the path to the FFMPEG.exe was set incorrectly, double check your FFMPEG path in the config page.")
         app.logger.error("Error details:",e)
         return jsonify({"error": "Conversion failed"}), 500
     finally:

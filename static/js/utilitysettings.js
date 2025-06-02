@@ -54,7 +54,7 @@ function setConfigPath(configOption, inputId, infoId = null) {
     .then(res => {
       if (infoId) {
         document.getElementById(infoId).textContent =
-          res.ok ? "Path set successfully!" : "Failed to set path.";
+          res.ok ? "Setting saved successfully!" : "Failed to set path.";
       }
       console.log(res.ok ? `Successfully set "${configOption}"` : `Failed to set "${configOption}". HTTP status: ${res.status}`);
     })
@@ -101,6 +101,11 @@ function removeConfigPath(configOption, inputId, infoId = null) {
     });
 }
 
+async function loadConfig(configOption) {
+  const res = await fetch(`/get-config-setting?config_option=${configOption}`);
+  const data = await res.json();
+  return data.config_value || "";
+}
 
 async function loadConfigPath(configOption, inputId) {
   const res = await fetch(`/get-config-setting?config_option=${configOption}`);
@@ -156,6 +161,13 @@ window.onload = function () {
   loadConfigPath("FFMPEG_PATH", "ffmpeg-path-holder");
   loadConfigPath("OPZ_MOUNT_PATH", "opz-path-holder");
   loadLoggerLevel();
+
+  // only show ffmpeg settings if the OS is Windows
+  var OS = loadConfig("OS");
+  if (OS !== "Windows") {
+    console.log("Hiding ffmpeg settings because OS is not Windows.");
+    document.getElementById("ffmpeg-settings").style.display = 'none';
+  }
 
   enableAutoResizeInput(document.getElementById("ffmpeg-path-holder"));
   enableAutoResizeInput(document.getElementById("opz-path-holder"));
