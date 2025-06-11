@@ -7,7 +7,17 @@ import os
 import werkzeug.utils
 import subprocess
 import uuid
-from config import load_config, save_config, reset_config, run_config_tasks
+from config import (
+    load_config,
+    save_config,
+    reset_config,
+    run_config_tasks,
+    get_config_setting,
+    set_config_setting,
+    delete_config_setting,
+    read_json_from_path,
+    write_json_to_path
+)
 from dialog_runner import run_dialog
 
 # setup
@@ -42,24 +52,23 @@ os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(SYN_CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
-
 # config
-config = load_config()
+load_config()
 run_config_tasks()  # Initialize config settings
-app.logger.debug(f"Loaded Config Options:\n{json.dumps(config, indent=2, sort_keys=True)}")
 
-@app.route('/get-os', methods=['POST'])
+
+@app.route('/get-os')
 def get_os():
     if sys.platform.startswith("win"):
-        config["OS"] = "windows"
+        set_config_setting("OS", "windows")
         app.logger.info("Detected OS: Windows")
         return "windows"
     elif sys.platform.startswith("darwin"):
-        config["OS"] = "macos"
+        set_config_setting("OS", "macos")
         app.logger.info("Detected OS: macOS")
         return "macos"
     else:
-        config["OS"] = "linux"
+        set_config_setting("OS", "linux")
         app.logger.info("Detected OS: Linux")
         return "linux"
 
@@ -67,11 +76,9 @@ def get_os():
 def index():
     return render_template("index.html")
 
-
 @app.route("/sampleconverter")
 def sampleconverter():
     return render_template("sampleconverter.html")
-
 
 @app.route("/samplemanager")
 def samplemanager():
@@ -85,11 +92,9 @@ def configeditor():
 def utilitysettings():
     return render_template("utilitysettings.html")
 
-
 @app.route("/read-samples")
 def read_opz():
-
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     sample_data = []
     app.logger.info(f"Reading samples from: {OPZ_MOUNT_PATH}")
 
@@ -102,23 +107,16 @@ def read_opz():
             sample_info = {"path": None}
 
             if os.path.isdir(slot_path):
-                files = [
-                    f
-                    for f in os.listdir(slot_path)
-                    if os.path.isfile(os.path.join(slot_path, f))
-                ]
+                files = [f for f in os.listdir(slot_path) if os.path.isfile(os.path.join(slot_path, f))]
                 if files:
                     sample_info["path"] = os.path.join(slot_path, files[0])
                     sample_info["filename"] = files[0]
-                    sample_info["filesize"] = os.path.getsize(
-                        os.path.join(slot_path, files[0])
-                    )
+                    sample_info["filesize"] = os.path.getsize(os.path.join(slot_path, files[0]))
 
             category_data.append(sample_info)
         sample_data.append(category_data)
 
     return jsonify({"sampleData": sample_data, "categories": SAMPLE_CATEGORIES})
-
 
 @app.route("/upload-sample", methods=["POST"])
 def upload_sample():
@@ -129,10 +127,9 @@ def upload_sample():
     if not category or not slot or not file:
         return {"error": "Missing category, slot, or file"}, 400
 
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     # Make sure the directory exists
     target_dir = os.path.join(
-        OPZ_MOUNT_PATH, "samplepacks", category, f"{int(slot)+1:02d}"
     )
     os.makedirs(target_dir, exist_ok=True)
 
@@ -159,7 +156,6 @@ def upload_sample():
         app.logger.error("Upload error:", e)
         return {"error": "File save failed"}, 500
 
-
 @app.route("/delete-sample", methods=["DELETE"])
 def delete_sample():
     data = request.get_json()
@@ -168,7 +164,7 @@ def delete_sample():
     if not sample_path or not os.path.isfile(sample_path):
         return {"error": "Invalid path"}, 400
 
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     # prevent deleting files outside the samplepacks directory, probably not needed but just in case
     if not sample_path.startswith(os.path.join(OPZ_MOUNT_PATH, "samplepacks")):
         return {"error": "Unauthorized path"}, 403
@@ -179,7 +175,6 @@ def delete_sample():
     except Exception as e:
         app.logger.error(f"Error deleting file: {e}")
         return {"error": "Failed to delete file"}, 500
-
 
 @app.route("/move-sample", methods=["POST"])
 def move_sample():
@@ -194,22 +189,15 @@ def move_sample():
         return {"error": "Source file doesn't exist"}, 404
 
     # Resolve destination path
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     filename = os.path.basename(source_path)
-    target_dir = os.path.join(
-        OPZ_MOUNT_PATH, "samplepacks", target_category, f"{int(target_slot)+1:02d}"
-    )
+    target_dir = os.path.join(OPZ_MOUNT_PATH, "samplepacks", target_category, f"{int(target_slot)+1:02d}")
     os.makedirs(target_dir, exist_ok=True)
     target_path = os.path.join(target_dir, filename)
 
     try:
         # Check if there's an existing file in the target slot
-        existing_files = [
-            f
-            for f in os.listdir(target_dir)
-            if os.path.isfile(os.path.join(target_dir, f))
-        ]
-
+        existing_files = [f for f in os.listdir(target_dir) if os.path.isfile(os.path.join(target_dir, f))]
         if existing_files:
             # Assume one sample per folder — just grab the first one
             existing_target = os.path.join(target_dir, existing_files[0])
@@ -218,9 +206,7 @@ def move_sample():
             if os.path.abspath(source_path) != os.path.abspath(existing_target):
                 # Move target sample to source's original folder
                 source_dir = os.path.dirname(source_path)
-                swapped_target = os.path.join(
-                    source_dir, os.path.basename(existing_target)
-                )
+                swapped_target = os.path.join(source_dir, os.path.basename(existing_target))
                 os.rename(existing_target, swapped_target)
 
         # Move new file into target slot (overwriting any remaining copy of itself)
@@ -233,11 +219,10 @@ def move_sample():
         app.logger.error("Move error:", e)
         return {"error": "Move failed"}, 500
 
-
 @app.route("/convert", methods=["POST"])
 def convert_sample():
     file = request.files["file"]
-    sample_type = request.form["type"]  # "drum" or "synth"
+    sample_type = request.form["type"]
 
     if file.filename == "":
         return jsonify({"error": "No file uploaded"}), 400
@@ -252,8 +237,7 @@ def convert_sample():
 
     # Determine max length
     max_duration = 12 if sample_type == "drum" else 6
-
-    ffmpeg_path = config.get("FFMPEG_PATH", "ffmpeg")
+    ffmpeg_path = get_config_setting("FFMPEG_PATH", "ffmpeg")
 
     # ffmpeg command
     ffmpeg_cmd = [
@@ -279,11 +263,10 @@ def convert_sample():
         app.logger.error("Subprocess Error:", e)
         return jsonify({"error": "Conversion failed"}), 500
     except Exception as e:
-        # while trying to 
-        app.logger.error("Unknown error while running attempting to run the FFMPEG subprocess.")
-        if(os.name == "nt"):
-            app.logger.warning("We detected you are using windows. We repeatedly found this error ([WinError 2] The system cannot find the file specified) when the path to the FFMPEG.exe was set incorrectly, double check your FFMPEG path in the config page.")
-        app.logger.error("Error details:",e)
+        app.logger.error("Unknown error while attempting to run the FFMPEG subprocess.")
+        if os.name == "nt":
+            app.logger.warning("Windows detected. This error is often due to a misconfigured FFMPEG path. Double check it.")
+        app.logger.error("Error details:", e)
         return jsonify({"error": "Conversion failed"}), 500
     finally:
         # Clean up input file
