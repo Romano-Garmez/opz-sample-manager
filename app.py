@@ -11,7 +11,8 @@ from config import (
     load_config,
     save_config,
     reset_config,
-    run_config_tasks,
+    run_config_task,
+    run_all_config_tasks,
     get_config_setting,
     set_config_setting,
     delete_config_setting,
@@ -56,7 +57,7 @@ os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 def app_startup_tasks():
     # config
     load_config()
-    run_config_tasks()  # Initialize config settings
+    run_all_config_tasks()  # Initialize config settings
     get_os()
 
 
@@ -335,7 +336,7 @@ def set_config_setting_route():
             return jsonify({"error": "Missing 'config_option' or 'config_value'"}), 400
 
         set_config_setting(config_option, config_value)
-        run_config_tasks()
+        run_config_task(config_option)
         return jsonify({"success": True})
 
     except Exception as e:

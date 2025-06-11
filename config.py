@@ -32,10 +32,26 @@ def set_logger_level(level_name: str):
 
 # if any of the config things need to do anything extra (ie set logging level) it happens here
 # this is run after each time a config setting is changed via set-config-setting
-def run_config_tasks():
+
+def run_config_tasks(changed_key):
     from app import app
-    app.logger.info("Updating all nessecary config options")
-    set_logger_level(app_config.get("LOGGER_LEVEL", "INFO"))
+    app.logger.info(f"Updating config tasks for: {changed_key}")
+
+    match changed_key:
+        case "LOGGER_LEVEL":
+            set_logger_level(app_config.get("LOGGER_LEVEL", "INFO"))
+        case _:
+            app.logger.debug(f"No config task defined for: {changed_key}")
+
+def run_all_config_tasks():
+    from app import app
+    app.logger.info("Running all config tasks...")
+
+    for key in app_config.keys():
+        run_config_tasks(key)
+
+
+
 
 # Function to load the configuration from a JSON file
 def load_config():
