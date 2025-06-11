@@ -26,29 +26,22 @@ def set_logger_level(level_name: str):
     if not isinstance(level, int):
         raise ValueError(f"Invalid log level: {level_name}")
 
-    from app import app
-    app.logger.setLevel(level)
-    app.logger.info(f"Log level set to {level_name}")
-
 # if any of the config things need to do anything extra (ie set logging level) it happens here
 # this is run after each time a config setting is changed via set-config-setting
 
-def run_config_tasks(changed_key):
-    from app import app
-    app.logger.info(f"Updating config tasks for: {changed_key}")
+def run_config_task(changed_key):
 
     match changed_key:
         case "LOGGER_LEVEL":
             set_logger_level(app_config.get("LOGGER_LEVEL", "INFO"))
         case _:
-            app.logger.debug(f"No config task defined for: {changed_key}")
+            None
+            # could log something here
 
 def run_all_config_tasks():
-    from app import app
-    app.logger.info("Running all config tasks...")
 
     for key in app_config.keys():
-        run_config_tasks(key)
+        run_config_task(key)
 
 
 
@@ -60,9 +53,6 @@ def load_config():
         loaded = read_json_from_path(CONFIG_PATH)
         app_config.clear()
         app_config.update(loaded)
-        app.logger.debug(f"Loaded Config Options:\n{json.dumps(app_config, indent=2, sort_keys=True)}")
-    else:
-        app.logger.error("Could not find config file to load.")
     return app_config
 
 # Function to save the configuration to a JSON file
@@ -73,8 +63,6 @@ def save_config():
 def reset_config():
     write_json_to_path(CONFIG_PATH, {})
     app_config.clear()
-    from app import app
-    app.logger.info("Configuration reset successfully.")
     return app_config
 
 # Get a config setting with an optional default
@@ -83,24 +71,16 @@ def get_config_setting(key, default=None):
 
 # Set a config setting and with option to not save it
 def set_config_setting(key, value, save=True):
-    old_value = app_config.get(key)
+    app_config.get(key)
     app_config[key] = value
-    from app import app
-    app.logger.info(f"Config updated: {key} = {value} (was: {old_value})")
     if save:
         save_config()
 
 # Optional: delete a config key, with option to not save
 def delete_config_setting(key, save=True):
     if key in app_config:
-        removed = app_config.pop(key)
-        from app import app
-        app.logger.info(f"Config deleted: {key} (was: {removed})")
+        app_config.pop(key)
         if save:
             save_config()
         return True
     return False
-
-
-# Load config at import time
-load_config()
