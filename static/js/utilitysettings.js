@@ -165,7 +165,6 @@ window.onload = function () {
   // only show ffmpeg settings if the OS is Windows
   (async function () {
     const OS = await loadConfig("OS");
-    console.log(OS);
     if (OS !== "windows") {
       console.log("Hiding ffmpeg settings because OS is not Windows.");
       document.getElementById("ffmpeg-settings").style.display = 'none';
