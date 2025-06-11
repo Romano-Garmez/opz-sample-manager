@@ -82,6 +82,9 @@ def delete_config_setting(key, save=True):
         app.logger.info(f"Config deleted: {key} (was: {removed})")
         if save:
             save_config()
+        return True
+    return False
+
 
 # Load config at import time
 load_config()
