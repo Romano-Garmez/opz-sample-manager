@@ -39,12 +39,13 @@ def run_config_tasks():
 
 # Function to load the configuration from a JSON file
 def load_config():
+    from app import app
     if os.path.exists(CONFIG_PATH):
         loaded = read_json_from_path(CONFIG_PATH)
         app_config.clear()
         app_config.update(loaded)
+        app.logger.debug(f"Loaded Config Options:\n{json.dumps(app_config, indent=2, sort_keys=True)}")
     else:
-        from app import app
         app.logger.error("Could not find config file to load.")
     return app_config
 
