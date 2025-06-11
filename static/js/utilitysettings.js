@@ -157,18 +157,20 @@ async function loadLoggerLevel() {
 }
 
 
-window.onload = async function () {
+window.onload = function () {
   loadConfigPath("FFMPEG_PATH", "ffmpeg-path-holder");
   loadConfigPath("OPZ_MOUNT_PATH", "opz-path-holder");
   loadLoggerLevel();
 
   // only show ffmpeg settings if the OS is Windows
-  var OS = await fetch("/get-os");
-  console.log(OS);
-  if (OS !== "Windows") {
-    console.log("Hiding ffmpeg settings because OS is not Windows.");
-    document.getElementById("ffmpeg-settings").style.display = 'none';
-  }
+  (async function () {
+    const OS = await loadConfig("OS");
+    console.log(OS);
+    if (OS !== "windows") {
+      console.log("Hiding ffmpeg settings because OS is not Windows.");
+      document.getElementById("ffmpeg-settings").style.display = 'none';
+    }
+  })();
 
   enableAutoResizeInput(document.getElementById("ffmpeg-path-holder"));
   enableAutoResizeInput(document.getElementById("opz-path-holder"));
