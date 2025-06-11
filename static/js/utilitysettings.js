@@ -157,13 +157,14 @@ async function loadLoggerLevel() {
 }
 
 
-window.onload = function () {
+window.onload = async function () {
   loadConfigPath("FFMPEG_PATH", "ffmpeg-path-holder");
   loadConfigPath("OPZ_MOUNT_PATH", "opz-path-holder");
   loadLoggerLevel();
 
   // only show ffmpeg settings if the OS is Windows
-  var OS = loadConfig("OS");
+  var OS = await fetch("/get-os");
+  console.log(OS);
   if (OS !== "Windows") {
     console.log("Hiding ffmpeg settings because OS is not Windows.");
     document.getElementById("ffmpeg-settings").style.display = 'none';
