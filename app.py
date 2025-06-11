@@ -360,9 +360,13 @@ def get_config_setting():
     config_option = request.args.get("config_option")
 
     if config_option is None:
+        app.logger.warning("Tried to get config setting without any config option sent.")
         return jsonify({"error": "Missing 'config_option' parameter"}), 400
 
     config_value = config.get(config_option, "")
+    if config_value == "":
+        app.logger.warning("Did not find a config entry for " + str(config_option) + " or it is an empty string.")
+    app.logger.debug("Returning Config value of " + str(config_value) + " for " + str(config_option))
     return jsonify({"success": True, "config_value": config_value})
 
 @app.route('/remove-config-setting', methods=['POST'])
