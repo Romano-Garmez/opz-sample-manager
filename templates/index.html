@@ -16,7 +16,7 @@
                 if (data.config_value && data.config_value !== '') {
                     document.getElementById('mount-path-container').hidden = true;
                 } else {
-                    document.getElementById('mount-path').innerText = 'OP-Z mount path not set. Please select your OP-Z mount directory at the bottom.';
+                    document.getElementById('mount-path').innerHTML = 'OP-Z mount path not set. Please select your OP-Z mount directory in <a href="/utilitysettings" class="btn btn-danger">Utility Settings</a>';
                 }
             })
             .catch(error => {
