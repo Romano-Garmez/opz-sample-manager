@@ -48,6 +48,7 @@ config = load_config()
 run_config_tasks()  # Initialize config settings
 app.logger.debug(f"Loaded Config Options:\n{json.dumps(config, indent=2, sort_keys=True)}")
 
+@app.route('/get-os', methods=['POST'])
 def get_os():
     if sys.platform.startswith("win"):
         config["OS"] = "windows"
