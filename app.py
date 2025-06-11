@@ -317,8 +317,10 @@ def get_user_multiple_files():
     return run_dialog("multi")
 
 # Flask routes to manage config for the sample manager app
+# needs the _route because *something*_config_setting already exists in config.py
+
 @app.route('/set-config-setting', methods=['POST'])
-def set_config_setting():
+def set_config_setting_route():
     try:
         data = request.json
         app.logger.debug("Incoming JSON data: " + str(data))
@@ -329,8 +331,7 @@ def set_config_setting():
         if config_option is None or config_value is None:
             return jsonify({"error": "Missing 'config_option' or 'config_value'"}), 400
 
-        config[config_option] = config_value
-        save_config(config)
+        set_config_setting(config_option, config_value)
         run_config_tasks()
         return jsonify({"success": True})
 
@@ -340,70 +341,66 @@ def set_config_setting():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/get-config-setting')
-def get_config_setting():
+def get_config_setting_route():
     config_option = request.args.get("config_option")
 
     if config_option is None:
         app.logger.warning("Tried to get config setting without any config option sent.")
         return jsonify({"error": "Missing 'config_option' parameter"}), 400
 
-    config_value = config.get(config_option, "")
+    config_value = get_config_setting(config_option, "")
     if config_value == "":
         app.logger.warning("Did not find a config entry for " + str(config_option) + " or it is an empty string.")
     app.logger.debug("Returning Config value of " + str(config_value) + " for " + str(config_option))
     return jsonify({"success": True, "config_value": config_value})
 
+
 @app.route('/remove-config-setting', methods=['POST'])
-def remove_config_setting():
+def remove_config_setting_route():
     data = request.json
     config_option = data.get("config_option")
 
     if config_option is None:
         return jsonify({"error": "Missing 'config_option'"}), 400
 
-    if config_option in config:
-        del config[config_option]
-        save_config(config)
+    if delete_config_setting(config_option):
         return jsonify({"success": True})
     else:
         return jsonify({"error": "Config option not found"}), 404
 
+
 # Flask routes to edit config files on the OP-Z
 @app.route('/get-config/general')
 def get_general_config():
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
-    with open(general_json_path) as f:
-        return jsonify(json.load(f))
-    
+    return jsonify(read_json_from_path(general_json_path))
+
 @app.route('/get-config/midi')
 def get_midi_config():
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
-    with open(midi_json_path) as f:
-        return jsonify(json.load(f))
+    return jsonify(read_json_from_path(midi_json_path))
 
 @app.route('/save-config/general', methods=['POST'])
 def save_general_config():
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     general_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'general.json')
     data = request.get_json()
-    with open(general_json_path, 'w') as f:
-        json.dump(data, f, indent=4)
+    write_json_to_path(general_json_path, data)
     return '', 204
 
 @app.route('/save-config/midi', methods=['POST'])
 def save_midi_config():
-    OPZ_MOUNT_PATH = config.get("OPZ_MOUNT_PATH")
+    OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     midi_json_path = os.path.join(OPZ_MOUNT_PATH, 'config', 'midi.json')
     data = request.get_json()
-    with open(midi_json_path, 'w') as f:
-        json.dump(data, f, indent=4)
+    write_json_to_path(midi_json_path, data)
     return '', 204
 
 @app.route('/reset-config', methods=['POST'])
 def reset_config_flask():
-    del config["OPZ_MOUNT_PATH"]
+    delete_config_setting("OPZ_MOUNT_PATH", save=False)
     reset_config()
     return jsonify({"success": True, "message": "Configuration reset successfully"})
 
