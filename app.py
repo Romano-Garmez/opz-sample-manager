@@ -58,21 +58,19 @@ def app_startup_tasks():
     # config
     load_config()
     run_all_config_tasks()  # Initialize config settings
-    get_os()
+    # fetch and set the os config
+    set_config_setting("OS", get_os())
 
 
 
 def get_os():
     if sys.platform.startswith("win"):
-        set_config_setting("OS", "windows")
         app.logger.info("Detected OS: Windows")
         return "windows"
     elif sys.platform.startswith("darwin"):
-        set_config_setting("OS", "macos")
         app.logger.info("Detected OS: macOS")
         return "macos"
     else:
-        set_config_setting("OS", "linux")
         app.logger.info("Detected OS: Linux")
         return "linux"
 
