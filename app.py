@@ -52,12 +52,15 @@ os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(SYN_CONVERTED_FOLDER, exist_ok=True)
 os.makedirs(DRUM_CONVERTED_FOLDER, exist_ok=True)
 
-# config
-load_config()
-run_config_tasks()  # Initialize config settings
+# run before server startup at the end of this file
+def app_startup_tasks():
+    # config
+    load_config()
+    run_config_tasks()  # Initialize config settings
+    get_os()
 
 
-@app.route('/get-os')
+
 def get_os():
     if sys.platform.startswith("win"):
         set_config_setting("OS", "windows")
@@ -405,4 +408,5 @@ def reset_config_flask():
     return jsonify({"success": True, "message": "Configuration reset successfully"})
 
 if __name__ == "__main__":
+    app_startup_tasks()
     app.run(debug=False)
