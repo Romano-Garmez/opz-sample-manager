@@ -77,3 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDragDrop('drum-samples', 'drum');
     setupDragDrop('synth-samples', 'synth');
 });
+
+// Prevent default drag-and-drop behavior on the whole page
+window.addEventListener("dragover", (e) => {
+    e.preventDefault();
+});
+
+window.addEventListener("drop", (e) => {
+    e.preventDefault();
+});

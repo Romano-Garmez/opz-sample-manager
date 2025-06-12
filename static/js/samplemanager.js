@@ -222,3 +222,12 @@ async function pollForMount(retries = 60, delay = 2000) {
 }
 
 pollForMount();
+
+// Prevent default drag-and-drop behavior on the whole page
+window.addEventListener("dragover", (e) => {
+    e.preventDefault();
+});
+
+window.addEventListener("drop", (e) => {
+    e.preventDefault();
+});
