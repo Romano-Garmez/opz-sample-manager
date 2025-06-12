@@ -25,6 +25,8 @@ def set_logger_level(level_name: str):
     level = getattr(logging, level_name, None)
     if not isinstance(level, int):
         raise ValueError(f"Invalid log level: {level_name}")
+    # Set root logger level - Flask's logger will inherit this
+    logging.getLogger().setLevel(level)
 
 # if any of the config things need to do anything extra (ie set logging level) it happens here
 # this is run after each time a config setting is changed via set-config-setting
