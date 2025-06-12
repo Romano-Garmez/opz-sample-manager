@@ -14,9 +14,7 @@ flask_process = None  # Global reference to the Flask process
 def start_flask():
     global flask_process
     flask_process = subprocess.Popen(
-        [sys.executable, "app.py"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        [sys.executable, "app.py"]
     )
 
 class MainWindow(QMainWindow):
