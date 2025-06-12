@@ -48,7 +48,6 @@ def run_all_config_tasks():
 
 # Function to load the configuration from a JSON file
 def load_config():
-    from app import app
     if os.path.exists(CONFIG_PATH):
         loaded = read_json_from_path(CONFIG_PATH)
         app_config.clear()
