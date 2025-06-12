@@ -1,6 +1,22 @@
 function setupDragDrop(id, type) {
     const dropArea = document.getElementById(id);
 
+    // Create hidden file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    // When the user clicks the drop area, trigger the input
+    dropArea.addEventListener('click', () => fileInput.click());
+
+    // When files are selected via the file picker
+    fileInput.addEventListener('change', async (event) => {
+        await handleFiles(event.target.files, type);
+    });
+
+    // Drag & Drop behavior
     dropArea.addEventListener('dragover', (event) => {
         event.preventDefault();
         dropArea.classList.add('dragover');
@@ -14,35 +30,48 @@ function setupDragDrop(id, type) {
     dropArea.addEventListener('drop', async (event) => {
         event.preventDefault();
         dropArea.classList.remove('dragover');
+        await handleFiles(event.dataTransfer.files, type);
+    });
+}
 
-        const files = event.dataTransfer.files;
+async function handleFiles(files, type) {
 
-        for (const file of files) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('type', type); // "drum" or "synth"
+    const results = [];
 
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', type); // "drum" or "synth"
+
+        try {
             const response = await fetch('/convert', {
                 method: 'POST',
                 body: formData
             });
 
             const result = await response.json();
-            alert(result.message || "Conversion done!");
+            results.push(`${file.name}: ${result.message || "Success"}`);
+        } catch (err) {
+            results.push(`${file.name}: Error - ${err.message}`);
         }
-    });
+    }
+
+    // Show all results in one alert
+    console.log("Conversion results:", results);
+    alert(results.join('\n'));
 }
+
 
 function openExplorer() {
     fetch("/open-explorer", { method: "POST" })
-      .then(response => {
-        if (!response.ok) throw new Error("Request failed");
-        return response.json();
-      })
-      .catch(err => {
-        console.error("Error:", err);
-      });
-  }
+        .then(response => {
+            if (!response.ok) throw new Error("Request failed");
+            return response.json();
+        })
+        .catch(err => {
+            console.error("Error:", err);
+        });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     setupDragDrop('drum-samples', 'drum');
